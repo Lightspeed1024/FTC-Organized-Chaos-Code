@@ -12,12 +12,10 @@ import org.firstinspires.ftc.teamcode.mechanisms.BasicDrivetrain.Motor;
 public class BasicTeleOp extends LinearOpMode {
     private final BasicDrivetrain drivetrain = new BasicDrivetrain();
     private final ElapsedTime loopTimer = new ElapsedTime();
-
     private static final double NORMAL_SPEED = 0.75;
     private static final double FAST_SPEED = 1.00;
     private static final double SLOW_SPEED = 0.35;
     private static final double DEAD_ZONE = 0.06;
-
     private static final double TURN_SPEED = 0.80;
     private static final double MOVING_TURN_SPEED = 0.55;
 
@@ -55,15 +53,16 @@ public class BasicTeleOp extends LinearOpMode {
                 drive = Math.copySign(drive * drive, drive);
                 turn = Math.copySign(turn * turn, turn);
 
-                boolean slowMode = gamepad1.left_bumper;
+                double slowAmount = Range.clip(gamepad1.left_trigger, 0.0, 1.0);
                 double boostAmount = Range.clip(gamepad1.right_trigger, 0.0, 1.0);
 
-                // The trigger raises the speed limit from 75% to 100%.
-                double speedLimit = interpolate(NORMAL_SPEED, FAST_SPEED, boostAmount);
-
-                // Slow mode overrides the trigger.
-                if (slowMode) {
-                    speedLimit = SLOW_SPEED;
+                // The left trigger slows down the speed, while the right trigger boosts it up
+                double speedLimit;
+                if (slowAmount > 0.05) {
+                    speedLimit = interpolate(NORMAL_SPEED, SLOW_SPEED, slowAmount);
+                }
+                else {
+                    speedLimit = interpolate(NORMAL_SPEED, FAST_SPEED, boostAmount);
                 }
 
                 // Turning is less sensitive while the robot is moving quickly.
@@ -91,11 +90,13 @@ public class BasicTeleOp extends LinearOpMode {
 
                 String driveMode;
 
-                if (slowMode) {
+                if (slowAmount > 0.05) {
                     driveMode = "SLOW";
-                } else if (boostAmount > 0.05) {
+                }
+                else if (boostAmount > 0.05) {
                     driveMode = "BOOST";
-                } else {
+                }
+                else {
                     driveMode = "NORMAL";
                 }
 
