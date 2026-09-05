@@ -1,48 +1,48 @@
-pakage org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Auton
+import org.firstinspires.ftc.teamcode.mechanisms.BasicDrivetrain;
+
+@Autonomous(name = "Basic Auton", group = "Autonomous")
 public class BasicAuton extends LinearOpMode {
-    BasicDrivetrain drivetrain = new BasicDrivetrain();
-    private final BasicDrivetrain.Motor leftMotor = BasicDrivetrain.Motor.LEFT_MOTOR;
-    private final BasicDrivetrain.Motor rightMotor = BasicDrivetrain.Motor.RIGHT_MOTOR;
 
-private void moveForward(long seconds){
+    private final BasicDrivetrain drivetrain = new BasicDrivetrain();
 
-  leftDrive.setPower(FORWARD_SPEED);
-  rightDrive.setPower(FORWARD_SPEED);
+    @Override
+    public void runOpMode() {
 
-  sleep(seconds);
+        // Initialize the drivetrain
+        drivetrain.init(this, hardwareMap);
 
-  leftDrive.setPower(0);
-  rightDrive.setPower(0);
-}
+        telemetry.addLine("Robot is ready!");
+        telemetry.update();
 
-private void moveBackward(long seconds){
+        // Wait for the Start button
+        waitForStart();
 
-  leftDrive.setPower(BACKWARD_SPEED);
-  rightDrive.setPower(BACKWARD_SPEED);
+        if (isStopRequested()) {
+            return;
+        }
 
-  sleep(seconds);
+        // Example Auton sequence starts here
 
-  leftDrive.setPower(0);
-  rightDrive.setPower(0);
-}
+        // Drive forward 24 inches
+        drivetrain.driveInches(0.5, 24, 24, 5);
 
-private void moveRight(long seconds){
+        // Turn right 90 degrees
+        drivetrain.turnDegrees(0.4, 90, 4);
 
-  leftDrive.setPower(FORWARD_SPEED);
-  rightDrive.setPower(BACKWARD_SPEED);
+        // Drive forward another 12 inches
+        drivetrain.driveInches(0.5, 12, 12, 3);
 
-  sleep(seconds)
+        // Example Auton sequence ends here
+        //We can change it later
 
-  leftDrive.setPower(0);
-  rightDrive.setPower(0);
-}
+        telemetry.addLine("Auton finished!");
+        telemetry.update();
+
+        sleep(1000);
+    }
 }
