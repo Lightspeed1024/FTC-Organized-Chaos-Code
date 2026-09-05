@@ -110,14 +110,14 @@ public class BasicTeleOp extends LinearOpMode {
                 telemetry.addData(
                         "Encoders",
                         "Left: %d  Right: %d",
-                        drivetrain.getCurrentPosition(Motor.LEFT_MOTOR),
-                        drivetrain.getCurrentPosition(Motor.RIGHT_MOTOR)
+                        drivetrain.getCurrentPosition(leftMotor),
+                        drivetrain.getCurrentPosition(rightMotor)
                 );
                 telemetry.addData(
                         "Motor Power",
                         "Left: %.2f  Right: %.2f",
-                        drivetrain.getPower(Motor.LEFT_MOTOR),
-                        drivetrain.getPower(Motor.RIGHT_MOTOR)
+                        drivetrain.getPower(leftMotor),
+                        drivetrain.getPower(rightMotor)
                 );
                 telemetry.update();
                 idle();
@@ -151,23 +151,5 @@ public class BasicTeleOp extends LinearOpMode {
     private double interpolate(double start, double end, double amount) {
         amount = Range.clip(amount, 0.0, 1.0);
         return start + (end - start) * amount;
-            if (gamepad1.right_bumper && !gamepad1.left_bumper) {
-                intake.spinIntake(1.0);
-            }
-            else if (gamepad1.left_bumper && !gamepad1.right_bumper) {
-                intake.spinIntake(-1.0);
-            }
-            else {
-                intake.spinIntake(0.0);
-            }
-
-            // Display motor power on the Driver Station
-            telemetry.addData("Left Power", leftPower);
-            telemetry.addData("Right Power", rightPower);
-            telemetry.addData("Intake Speed", intake.getSpeed());
-            telemetry.addData("Left Ticks", drivetrain.getCurrentPosition(leftMotor));
-            telemetry.addData("Right Ticks", drivetrain.getCurrentPosition(rightMotor));
-            telemetry.update();
-        }
     }
 }
