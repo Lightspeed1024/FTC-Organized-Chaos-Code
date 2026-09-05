@@ -21,12 +21,9 @@ public class BasicDrivetrain {
     private static final double DRIVE_GEAR_REDUCTION = 1.0;
     private static final double WHEEL_DIAMETER_INCHES = 3.54331;
     private static final double TRACK_WIDTH_INCHES = 16.0;
-
     private static final double SPEED_UP_RATE = 2.75;
     private static final double SLOW_DOWN_RATE = 5.50;
-
     private static final double TURN_CIRCUMFERENCE = Math.PI * TRACK_WIDTH_INCHES;
-
     private static final double COUNTS_PER_INCH =
             (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION)
                     / (WHEEL_DIAMETER_INCHES * Math.PI);
@@ -66,11 +63,7 @@ public class BasicDrivetrain {
     /**
      * Changes motor power gradually so the robot does not jerk forward or backward.
      */
-    public void setSmoothDrivePower(
-            double wantedLeftPower,
-            double wantedRightPower,
-            double loopTime
-    ) {
+    public void setSmoothDrivePower(double wantedLeftPower, double wantedRightPower, double loopTime) {
         double newLeftPower = smoothPower(leftPower, wantedLeftPower, loopTime);
         double newRightPower = smoothPower(rightPower, wantedRightPower, loopTime);
 
@@ -81,18 +74,11 @@ public class BasicDrivetrain {
      * Uses the motor encoders to move each side of the robot a set distance.
      * Positive distances move forward, and negative distances move backward.
      */
-    public void driveInches(
-            double speed,
-            double leftInches,
-            double rightInches,
-            double timeoutSeconds
-    ) {
+    public void driveInches(double speed, double leftInches, double rightInches, double timeoutSeconds) {
         if (!opMode.opModeIsActive()) {
             return;
         }
-
         double drivePower = Range.clip(Math.abs(speed), 0.0, 1.0);
-
         if (drivePower == 0.0 || timeoutSeconds <= 0.0) {
             stop();
             return;
@@ -143,7 +129,6 @@ public class BasicDrivetrain {
             }
         } finally {
             stop();
-
             setMode(Motor.LEFT_MOTOR, DcMotor.RunMode.RUN_USING_ENCODER);
             setMode(Motor.RIGHT_MOTOR, DcMotor.RunMode.RUN_USING_ENCODER);
         }
@@ -159,14 +144,9 @@ public class BasicDrivetrain {
 
     public double getPower(Motor motor) {
         switch (motor) {
-            case LEFT_MOTOR:
-                return leftPower;
-
-            case RIGHT_MOTOR:
-                return rightPower;
-
-            default:
-                return 0.0;
+            case LEFT_MOTOR: return leftPower;
+            case RIGHT_MOTOR: return rightPower;
+            default: return 0.0;
         }
     }
 
@@ -187,14 +167,8 @@ public class BasicDrivetrain {
     public void stop() {
         leftPower = 0.0;
         rightPower = 0.0;
-
-        if (leftMotor != null) {
-            leftMotor.setPower(0.0);
-        }
-
-        if (rightMotor != null) {
-            rightMotor.setPower(0.0);
-        }
+        leftMotor.setPower(0.0);
+        rightMotor.setPower(0.0);
     }
 
     public void setMotorSpeed(Motor motor, double speed) {
@@ -203,26 +177,16 @@ public class BasicDrivetrain {
 
     public int getCurrentPosition(Motor motor) {
         switch (motor) {
-            case LEFT_MOTOR:
-                return leftMotor.getCurrentPosition();
-
-            case RIGHT_MOTOR:
-                return rightMotor.getCurrentPosition();
-
-            default:
-                return 0;
+            case LEFT_MOTOR: return leftMotor.getCurrentPosition();
+            case RIGHT_MOTOR: return rightMotor.getCurrentPosition();
+            default: return 0;
         }
     }
 
     public void setTargetPosition(Motor motor, int target) {
         switch (motor) {
-            case LEFT_MOTOR:
-                leftMotor.setTargetPosition(target);
-                break;
-
-            case RIGHT_MOTOR:
-                rightMotor.setTargetPosition(target);
-                break;
+            case LEFT_MOTOR: leftMotor.setTargetPosition(target); break;
+            case RIGHT_MOTOR: rightMotor.setTargetPosition(target); break;
         }
     }
 
@@ -244,26 +208,16 @@ public class BasicDrivetrain {
 
     public void setMode(Motor motor, DcMotor.RunMode mode) {
         switch (motor) {
-            case LEFT_MOTOR:
-                leftMotor.setMode(mode);
-                break;
-
-            case RIGHT_MOTOR:
-                rightMotor.setMode(mode);
-                break;
+            case LEFT_MOTOR: leftMotor.setMode(mode);break;
+            case RIGHT_MOTOR: rightMotor.setMode(mode);break;
         }
     }
 
     public boolean isBusy(Motor motor) {
         switch (motor) {
-            case LEFT_MOTOR:
-                return leftMotor.isBusy();
-
-            case RIGHT_MOTOR:
-                return rightMotor.isBusy();
-
-            default:
-                return false;
+            case LEFT_MOTOR: return leftMotor.isBusy();
+            case RIGHT_MOTOR: return rightMotor.isBusy();
+            default: return false;
         }
     }
 

@@ -144,7 +144,6 @@ public class BasicTeleOp extends LinearOpMode {
 
     /**
      * Finds a value between start and end.
-     *
      * An amount of 0 returns start, 1 returns end, and 0.5 returns
      * the value halfway between them.
      */
