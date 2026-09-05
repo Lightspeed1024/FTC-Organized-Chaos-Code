@@ -49,9 +49,7 @@ public class BasicTeleOp extends LinearOpMode {
 
                 // FTC reports forward movement of the left stick as a negative value.
                 double drive = fixJoystick(-gamepad1.left_stick_y);
-
-                // double turn = fixJoystick(-gamepad1.right_stick_x);
-                double turn = 0.0; // This is a temporary test to disable turning. To revert, uncomment the line above and delete this line.
+                double turn = fixJoystick(-gamepad1.right_stick_x);
 
                 // Cubing makes small stick movements easier to control.
                 drive = Math.copySign(drive * drive, drive);
