@@ -16,75 +16,25 @@ NEVER edit any of the source files from the FtcRobotController folder or anythin
 
 ## 2. How to connect from Android Studio to the Control Hub
 
-1. Power cycle the control hub first
+[Connect Android Studio to Robot (Google Docs)]([Connect Android Studio to Robot - Google Docs](https://docs.google.com/document/d/1zuhvI5nTuA7FVcysIlbueDkkUj9XEFCFnqyIlVoiSpE/edit?tab=t.0))
 
-2. While connected to the WiFi with internet, go to the top and click file &rarr; Sync project with Gradle files (if file is not there, first click the 3 bars at the top left, then file will appear)
+## 3. How to use a older version
 
-3. Wait for the blue bar at the bottom right to disappear
+[GitHub Version Control Validation (Google Docs)]([GitHub Version Control Validation - Google Docs](https://docs.google.com/document/d/1pdM7OqOEeX-81gTS5WO16nOVqT1vW59JSS-CBYeUP9g/edit?tab=t.0))
 
-4. Then, go to the top and click Build &rarr; Assemble Project
-
-5. Wait for the blue bar at the bottom right to disappear
-
-6. Go to the right bar and click Gradle (the button with the elephant), and click the button with a cloud and a bar running through it.
-
-1. After moving your mouse away, that cloud button should be highlighted a lighter gray. 
-
-2. Connect to the robot WiFi at 36121-RC
-
-3. Click the terminal at the bottom left (circled blue in image)
-
-4. Run ```& "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" connect 192.168.43.1:5555```
-
-5. The top should now show the REV Control Hub instead of No Devices in the image.
-
-6. To run the code, click the green triangle or refresh arrow at the top.
-
-7. You can now select the code on the driver station.
-
-## 2. How to use a older version
-
-To revert to an older version on GitHub, you have two options: one for just temporarily viewing it, and another mostly permanent option if you need to use it a lot and edit the version. 
-
-**Option 1: Commit Checkout**
-
-This option is great if you just want to temporarily view the older code and run it <u>without editing anything</u>.
-
-1. Go to the last commit before the unwanted change in the History tab on the left bar of GitHub Desktop.
-
-2. Right click, and select "Checkout commit".
-
-3. Now, on Android Studio you will be able to view that older version.
-
-**CRUCIAL NOTE: NEVER edit anything while viewing this checked out commit. This is meant for VIEW ONLY.** 
-
-To return to the current version, in GitHub desktop go to the top and click the branch that would say "Detached HEAD", and choose a normal branch.
-
-**Option 2: Create a new branch**
-
-Choose this option if you need to frequently switch to this version and/or edit it.
-
-1. Once again in the History tab of Github desktop, go to the last commit before the unwanted change. 
-
-2. Right click, and choose "Create branch from commit".
-
-3. Publish this branch to GitHub.
-
-4. Now, this version acts as its own branch where you can edit and seamlessly switch back to it.
-
-## 2. Do not update the Gradle or anything else related to the SDK
+## 4. Do not update the Gradle or anything else related to the SDK
 
 If Android Studio or VSCode asks you to update Gradle, migrate to Gradle Daemon, etc. DO NOT DO IT. FTC robot code relies on a specific version and Java environment and changing it will cause the project to break.
 
-## 3. Do not sync fork
+## 5. Do not sync fork
 
 Do NOT press the "sync fork" button on the home web page, merge from the upstream in the terminal, or pull any changes from the upstream repository. Since we are changing the files from the default template, doing so will revert our files back to the original, removing progress.
 
-## 4. Do not update Gradle or anything else related to the SDK
+## 6. Do not update Gradle or anything else related to the SDK
 
 If Android Studio or VSCode asks you to update Gradle, migrate to Gradle Daemon, etc. DO NOT DO IT. FTC robot code relies on a specific version and Java environment and changing it will cause the project to break.
 
-## 5. Branching
+## 7. Branching
 
 To make changes, such as adding a feature or editing code, you must create a branch first. You are strictly blocked from pushing code directly to the `main` branch. 
 
@@ -95,7 +45,7 @@ To make changes, such as adding a feature or editing code, you must create a bra
 * <u>**Commits:** Please use precise and descriptive titles and explanations for each commit to clearly describe what you changed.</u>
 * **Do not spam pull requests!** Only submit a pull request when your branch feature is fully developed and needs no more fixing. ALSO DO NOT APPROVE PULL REQUESTS RANDOMLY. Discuss it with other people in person or in the comments section of the PR.
 
-## 6. Pull Request & Merging Rules
+## 8. Pull Request & Merging Rules
 
 Once your work is finished on your side branch, you must open a Pull Request (PR) on GitHub.
 
@@ -103,11 +53,11 @@ Once your work is finished on your side branch, you must open a Pull Request (PR
 * **Merge Commits:** We strongly recommend using the default **Merge Commit** option on GitHub. Do not squash your commits and do not rebase, unless absolutely necessary. We want to preserve your full step-by-step history log.
 * **Required Approvals:** You must receive approval from at least one member of the team before merging your pull request.
 
-## 7. Do not update Gradle or anything else related to the SDK
+## 9. Do not update Gradle or anything else related to the SDK
 
 If Android Studio or VSCode asks you to update Gradle, migrate to Gradle Daemon, etc. DO NOT DO IT. FTC robot code relies on a specific version and Java environment and changing it will cause the project to break.
 
-## 8. If you accidentally committed to main:
+## 10. If you accidentally committed to main:
 
 **Step 1: Create Your New Feature Branch**
 
