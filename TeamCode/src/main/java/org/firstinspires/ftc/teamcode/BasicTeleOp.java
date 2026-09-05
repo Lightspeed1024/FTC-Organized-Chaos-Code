@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.mechanisms.BasicDrivetrain;
-import org.firstinspires.ftc.teamcode.mechanisms.BasicDrivetrain.Motor;
 import org.firstinspires.ftc.teamcode.mechanisms.BasicIntake;
 
 @TeleOp(name = "Basic TeleOp", group = "Drive")
