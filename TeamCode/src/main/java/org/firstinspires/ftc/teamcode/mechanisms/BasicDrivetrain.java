@@ -56,8 +56,8 @@ public class BasicDrivetrain {
     }
 
     public void setDrivePower(double leftPower, double rightPower) {
-        setPower(Motor.LEFT_MOTOR, leftPower);
-        setPower(Motor.RIGHT_MOTOR, rightPower);
+        leftMotor.setPower(leftPower);
+        rightMotor.setPower(rightPower);
     }
 
     /**
@@ -84,14 +84,14 @@ public class BasicDrivetrain {
             return;
         }
 
-        int leftTarget = getCurrentPosition(Motor.LEFT_MOTOR) + inchesToTicks(leftInches);
-        int rightTarget = getCurrentPosition(Motor.RIGHT_MOTOR) + inchesToTicks(rightInches);
+        int leftTarget = leftMotor.getCurrentPosition() + inchesToTicks(leftInches);
+        int rightTarget = rightMotor.getCurrentPosition() + inchesToTicks(rightInches);
 
-        setTargetPosition(Motor.LEFT_MOTOR, leftTarget);
-        setTargetPosition(Motor.RIGHT_MOTOR, rightTarget);
+        leftMotor.setTargetPosition(leftTarget);
+        rightMotor.setTargetPosition(rightTarget);
 
-        setMode(Motor.LEFT_MOTOR, DcMotor.RunMode.RUN_TO_POSITION);
-        setMode(Motor.RIGHT_MOTOR, DcMotor.RunMode.RUN_TO_POSITION);
+        leftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         runtime.reset();
 
@@ -101,7 +101,7 @@ public class BasicDrivetrain {
             // Wait until both motors finish, time runs out, or the OpMode stops.
             while (opMode.opModeIsActive()
                     && runtime.seconds() < timeoutSeconds
-                    && (isBusy(Motor.LEFT_MOTOR) || isBusy(Motor.RIGHT_MOTOR))) {
+                    && (leftMotor.isBusy() || rightMotor.isBusy())) {
 
                 opMode.telemetry.addData(
                         "Target",
@@ -113,8 +113,8 @@ public class BasicDrivetrain {
                 opMode.telemetry.addData(
                         "Position",
                         "Left: %d  Right: %d",
-                        getCurrentPosition(Motor.LEFT_MOTOR),
-                        getCurrentPosition(Motor.RIGHT_MOTOR)
+                        leftMotor.getCurrentPosition(),
+                        rightMotor.getCurrentPosition()
                 );
 
                 opMode.telemetry.addData(
@@ -129,8 +129,8 @@ public class BasicDrivetrain {
             }
         } finally {
             stop();
-            setMode(Motor.LEFT_MOTOR, DcMotor.RunMode.RUN_USING_ENCODER);
-            setMode(Motor.RIGHT_MOTOR, DcMotor.RunMode.RUN_USING_ENCODER);
+            leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
     }
 
@@ -151,17 +151,17 @@ public class BasicDrivetrain {
     }
 
     public boolean isDriving() {
-        return isBusy(Motor.LEFT_MOTOR) || isBusy(Motor.RIGHT_MOTOR);
+        return leftMotor.isBusy() || rightMotor.isBusy();
     }
 
     public void resetEncoders() {
         stop();
 
-        setMode(Motor.LEFT_MOTOR, DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        setMode(Motor.RIGHT_MOTOR, DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        setMode(Motor.LEFT_MOTOR, DcMotor.RunMode.RUN_USING_ENCODER);
-        setMode(Motor.RIGHT_MOTOR, DcMotor.RunMode.RUN_USING_ENCODER);
+        leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void stop() {
