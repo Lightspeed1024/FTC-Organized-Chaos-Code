@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.teamcode.mechanisms.BasicDrivetrain;
 import org.firstinspires.ftc.teamcode.mechanisms.BasicIntake;
 
-@TeleOp(name = "Basic TeleOp", group = "Drive")
+@TeleOp
 public class BasicTeleOp extends LinearOpMode {
     private final ElapsedTime loopTimer = new ElapsedTime();
     private static final double NORMAL_SPEED = 0.75;
