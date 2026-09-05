@@ -7,16 +7,11 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 public class BasicDrivetrain {
-    public enum Motor {
-        LEFT_MOTOR,
-        RIGHT_MOTOR
-    }
-
     private DcMotor leftMotor;
     private DcMotor rightMotor;
+    public enum Motor {LEFT_MOTOR, RIGHT_MOTOR}
     private LinearOpMode opMode;
-
-    private final ElapsedTime runtime = new ElapsedTime();
+    private ElapsedTime runtime = new ElapsedTime();
 
     private double leftPower = 0.0;
     private double rightPower = 0.0;
@@ -46,8 +41,16 @@ public class BasicDrivetrain {
         rightMotor = hardwareMap.get(DcMotor.class, "rightMotor");
 
         // The motors face opposite directions, so the right motor is reversed.
-        leftMotor.setDirection(DcMotor.Direction.FORWARD);
+        leftMotor = hardwareMap.get(DcMotor.class, "leftMotor");
+        rightMotor = hardwareMap.get(DcMotor.class, "rightMotor");
+
+        leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         rightMotor.setDirection(DcMotor.Direction.REVERSE);
+        leftMotor.setDirection(DcMotor.Direction.FORWARD);
 
         leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

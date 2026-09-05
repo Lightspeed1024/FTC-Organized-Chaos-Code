@@ -7,10 +7,10 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.mechanisms.BasicDrivetrain;
 import org.firstinspires.ftc.teamcode.mechanisms.BasicDrivetrain.Motor;
+import org.firstinspires.ftc.teamcode.mechanisms.BasicIntake;
 
 @TeleOp(name = "Basic TeleOp", group = "Drive")
 public class BasicTeleOp extends LinearOpMode {
-    private final BasicDrivetrain drivetrain = new BasicDrivetrain();
     private final ElapsedTime loopTimer = new ElapsedTime();
     private static final double NORMAL_SPEED = 0.75;
     private static final double FAST_SPEED = 1.00;
@@ -18,6 +18,10 @@ public class BasicTeleOp extends LinearOpMode {
     private static final double DEAD_ZONE = 0.06;
     private static final double TURN_SPEED = 0.80;
     private static final double MOVING_TURN_SPEED = 0.55;
+    BasicDrivetrain drivetrain = new BasicDrivetrain();
+    BasicIntake intake = new BasicIntake();
+    private final BasicDrivetrain.Motor leftMotor = BasicDrivetrain.Motor.LEFT_MOTOR;
+    private final BasicDrivetrain.Motor rightMotor = BasicDrivetrain.Motor.RIGHT_MOTOR;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -147,5 +151,23 @@ public class BasicTeleOp extends LinearOpMode {
     private double interpolate(double start, double end, double amount) {
         amount = Range.clip(amount, 0.0, 1.0);
         return start + (end - start) * amount;
+            if (gamepad1.right_bumper && !gamepad1.left_bumper) {
+                intake.spinIntake(1.0);
+            }
+            else if (gamepad1.left_bumper && !gamepad1.right_bumper) {
+                intake.spinIntake(-1.0);
+            }
+            else {
+                intake.spinIntake(0.0);
+            }
+
+            // Display motor power on the Driver Station
+            telemetry.addData("Left Power", leftPower);
+            telemetry.addData("Right Power", rightPower);
+            telemetry.addData("Intake Speed", intake.getSpeed());
+            telemetry.addData("Left Ticks", drivetrain.getCurrentPosition(leftMotor));
+            telemetry.addData("Right Ticks", drivetrain.getCurrentPosition(rightMotor));
+            telemetry.update();
+        }
     }
 }

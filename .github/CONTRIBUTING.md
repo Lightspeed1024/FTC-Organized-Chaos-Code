@@ -10,24 +10,31 @@ ALL of the team code should go in this folder:
 
 TeamCode &rarr; src &rarr; main &rarr; java &rarr; org.firstinspires.ftc.teamcode
 
-
 <u>Any code relating to the physical hardware connected to the robot should go in the **mechanisms** package inside that folder.</u> OpMode code will then use objects from that folder.
 
 NEVER edit any of the source files from the FtcRobotController folder or anything outside the TeamCode folder, as those are written by FIRST and editing them will cause the project to break.
 
-## 2. Do not update the Gradle or anything else related to the SDK
+## 2. How to connect from Android Studio to the Control Hub
+
+[Connect Android Studio to Robot (Google Docs)]([Connect Android Studio to Robot - Google Docs](https://docs.google.com/document/d/1zuhvI5nTuA7FVcysIlbueDkkUj9XEFCFnqyIlVoiSpE/edit?tab=t.0))
+
+## 3. How to use a older version
+
+[GitHub Version Control Validation (Google Docs)]([GitHub Version Control Validation - Google Docs](https://docs.google.com/document/d/1pdM7OqOEeX-81gTS5WO16nOVqT1vW59JSS-CBYeUP9g/edit?tab=t.0))
+
+## 4. Do not update the Gradle or anything else related to the SDK
 
 If Android Studio or VSCode asks you to update Gradle, migrate to Gradle Daemon, etc. DO NOT DO IT. FTC robot code relies on a specific version and Java environment and changing it will cause the project to break.
 
-## 3. Do not sync fork
+## 5. Do not sync fork
 
 Do NOT press the "sync fork" button on the home web page, merge from the upstream in the terminal, or pull any changes from the upstream repository. Since we are changing the files from the default template, doing so will revert our files back to the original, removing progress.
 
-## 4. Do not update Gradle or anything else related to the SDK
+## 6. Do not update Gradle or anything else related to the SDK
 
 If Android Studio or VSCode asks you to update Gradle, migrate to Gradle Daemon, etc. DO NOT DO IT. FTC robot code relies on a specific version and Java environment and changing it will cause the project to break.
 
-## 5. Branching
+## 7. Branching
 
 To make changes, such as adding a feature or editing code, you must create a branch first. You are strictly blocked from pushing code directly to the `main` branch. 
 
@@ -38,7 +45,7 @@ To make changes, such as adding a feature or editing code, you must create a bra
 * <u>**Commits:** Please use precise and descriptive titles and explanations for each commit to clearly describe what you changed.</u>
 * **Do not spam pull requests!** Only submit a pull request when your branch feature is fully developed and needs no more fixing. ALSO DO NOT APPROVE PULL REQUESTS RANDOMLY. Discuss it with other people in person or in the comments section of the PR.
 
-## 6. Pull Request & Merging Rules
+## 8. Pull Request & Merging Rules
 
 Once your work is finished on your side branch, you must open a Pull Request (PR) on GitHub.
 
@@ -46,11 +53,11 @@ Once your work is finished on your side branch, you must open a Pull Request (PR
 * **Merge Commits:** We strongly recommend using the default **Merge Commit** option on GitHub. Do not squash your commits and do not rebase, unless absolutely necessary. We want to preserve your full step-by-step history log.
 * **Required Approvals:** You must receive approval from at least one member of the team before merging your pull request.
 
-## 7. Do not update Gradle or anything else related to the SDK
+## 9. Do not update Gradle or anything else related to the SDK
 
 If Android Studio or VSCode asks you to update Gradle, migrate to Gradle Daemon, etc. DO NOT DO IT. FTC robot code relies on a specific version and Java environment and changing it will cause the project to break.
 
-## 8. If you accidentally committed to main:
+## 10. If you accidentally committed to main:
 
 **Step 1: Create Your New Feature Branch**
 
