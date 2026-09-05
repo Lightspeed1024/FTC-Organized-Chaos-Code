@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 public class BasicDrivetrain {
     private DcMotor leftMotor;
@@ -12,24 +13,33 @@ public class BasicDrivetrain {
     private LinearOpMode opMode;
     private ElapsedTime runtime = new ElapsedTime();
 
-    // Calculate the COUNTS_PER_INCH for your specific drive train.
-    // Go to your motor vendor website to determine your motor's COUNTS_PER_MOTOR_REV
-    // For external drive gearing, set DRIVE_GEAR_REDUCTION as needed.
-    // For example, use a value of 2.0 for a 12-tooth spur gear driving a 24-tooth spur gear.
-    // This is gearing DOWN for less speed and more torque.
-    // For gearing UP, use a gear ratio less than 1.0. Note this will affect the direction of wheel rotation.
-    static final double     COUNTS_PER_MOTOR_REV    = 560 ;     // Rev HD Hex motor with 20:1 planetary gearbox
-    static final double     DRIVE_GEAR_REDUCTION    = 1.0 ;     // No External Gearing.
-    static final double     WHEEL_DIAMETER_INCHES   = 3.54331;  // traction wheels (90mm)
-    static final double     TRACK_WIDTH_INCHES      = 16.0;     // Customize to our robot
-    static final double     TURN_CIRCUMFERENCE      = Math.PI * TRACK_WIDTH_INCHES;
-    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
-            (WHEEL_DIAMETER_INCHES * Math.PI);
+    private double leftPower = 0.0;
+    private double rightPower = 0.0;
 
-    public void init(LinearOpMode opMode, HardwareMap hwMap) {
+    // Change these measurements if the motors, wheels, or gearing change.
+    private static final double COUNTS_PER_MOTOR_REV = 560.0;
+    private static final double DRIVE_GEAR_REDUCTION = 1.0;
+    private static final double WHEEL_DIAMETER_INCHES = 3.54331;
+    private static final double TRACK_WIDTH_INCHES = 16.0;
+    private static final double SPEED_UP_RATE = 2.75;
+    private static final double SLOW_DOWN_RATE = 5.50;
+    private static final double TURN_CIRCUMFERENCE = Math.PI * TRACK_WIDTH_INCHES;
+    private static final double COUNTS_PER_INCH =
+            (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION)
+                    / (WHEEL_DIAMETER_INCHES * Math.PI);
+
+    /**
+     * Connects the code to the drivetrain motors and prepares them for driving.
+     */
+    public void init(LinearOpMode opMode, HardwareMap hardwareMap) {
         this.opMode = opMode;
-        leftMotor = hwMap.get(DcMotor.class, "leftMotor");
-        rightMotor = hwMap.get(DcMotor.class, "rightMotor");
+
+        leftMotor = hardwareMap.get(DcMotor.class, "leftMotor");
+        rightMotor = hardwareMap.get(DcMotor.class, "rightMotor");
+
+        // The motors face opposite directions, so the right motor is reversed.
+        leftMotor = hardwareMap.get(DcMotor.class, "leftMotor");
+        rightMotor = hardwareMap.get(DcMotor.class, "rightMotor");
 
         leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -39,101 +49,138 @@ public class BasicDrivetrain {
         rightMotor.setDirection(DcMotor.Direction.REVERSE);
         leftMotor.setDirection(DcMotor.Direction.FORWARD);
 
-        rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        resetEncoders();
+    }
+
+    public void setDrivePower(double leftPower, double rightPower) {
+        leftMotor.setPower(leftPower);
+        rightMotor.setPower(rightPower);
     }
 
     /**
-     *  Method to perform a relative move, based on encoder counts.
-     *  Encoders are not reset as the move is based on the current position.
-     *  If turning is desired, use the turnDegrees method instead.
-     *  Move will stop if any of three conditions occur:
-     *  1) Move gets to the desired position
-     *  2) Move runs out of time
-     *  3) Driver stops the OpMode running.
-     * @param speed       The speed to drive at.
-     * @param leftInches  The distance for the left side to drive. Set negative for reverse movement.
-     * @param rightInches The distance for the right side to drive. Set negative for reverse movement.
-     * @param timeoutS    The time to complete the action.
-     *                    If the action has not been done when the timer runs out, movement stops.
+     * Changes motor power gradually so the robot does not jerk forward or backward.
      */
-    public void driveInches(double speed,
-                            double leftInches, double rightInches,
-                            double timeoutS) {
-        int newLeftTarget;
-        int newRightTarget;
+    public void setSmoothDrivePower(double wantedLeftPower, double wantedRightPower, double loopTime) {
+        double newLeftPower = smoothPower(leftPower, wantedLeftPower, loopTime);
+        double newRightPower = smoothPower(rightPower, wantedRightPower, loopTime);
 
-        // Ensure that the OpMode is still active
-        if (opMode.opModeIsActive()) {
+        setDrivePower(newLeftPower, newRightPower);
+    }
 
-            // Determine new target position, and pass to motor controller
-            newLeftTarget = leftMotor.getCurrentPosition() + (int) (leftInches * COUNTS_PER_INCH);
-            newRightTarget = rightMotor.getCurrentPosition() + (int) (rightInches * COUNTS_PER_INCH);
-            leftMotor.setTargetPosition(newLeftTarget);
-            rightMotor.setTargetPosition(newRightTarget);
+    /**
+     * Uses the motor encoders to move each side of the robot a set distance.
+     * Positive distances move forward, and negative distances move backward.
+     */
+    public void driveInches(double speed, double leftInches, double rightInches, double timeoutSeconds) {
+        if (!opMode.opModeIsActive()) {
+            return;
+        }
+        double drivePower = Range.clip(Math.abs(speed), 0.0, 1.0);
+        if (drivePower == 0.0 || timeoutSeconds <= 0.0) {
+            stop();
+            return;
+        }
 
-            // Turn On RUN_TO_POSITION
-            leftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        int leftTarget = leftMotor.getCurrentPosition() + inchesToTicks(leftInches);
+        int rightTarget = rightMotor.getCurrentPosition() + inchesToTicks(rightInches);
 
-            // reset the timeout time and start motion.
-            runtime.reset();
-            leftMotor.setPower(Math.abs(speed));
-            rightMotor.setPower(Math.abs(speed));
+        leftMotor.setTargetPosition(leftTarget);
+        rightMotor.setTargetPosition(rightTarget);
 
-            // keep looping while we are still active, and there is time left, and both motors are running.
-            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
-            // its target position, the motion will stop.  This is "safer" in the event that the robot will
-            // always end the motion as soon as possible.
-            // However, if you require that BOTH motors have finished their moves before the robot continues
-            // onto the next step, use (isBusy() || isBusy()) in the loop test.
-            while (opMode.opModeIsActive() &&
-                    (runtime.seconds() < timeoutS) &&
-                    (leftMotor.isBusy() && rightMotor.isBusy())) {
+        leftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-                // Display it for the driver.
-                opMode.telemetry.addData("Running to", " %7d :%7d", newLeftTarget, newRightTarget);
-                opMode.telemetry.addData("Currently at", " at %7d :%7d",
-                        leftMotor.getCurrentPosition(), rightMotor.getCurrentPosition());
+        runtime.reset();
+
+        try {
+            setDrivePower(drivePower, drivePower);
+
+            // Wait until both motors finish, time runs out, or the OpMode stops.
+            while (opMode.opModeIsActive()
+                    && runtime.seconds() < timeoutSeconds
+                    && (leftMotor.isBusy() || rightMotor.isBusy())) {
+
+                opMode.telemetry.addData(
+                        "Target",
+                        "Left: %d  Right: %d",
+                        leftTarget,
+                        rightTarget
+                );
+
+                opMode.telemetry.addData(
+                        "Position",
+                        "Left: %d  Right: %d",
+                        leftMotor.getCurrentPosition(),
+                        rightMotor.getCurrentPosition()
+                );
+
+                opMode.telemetry.addData(
+                        "Time",
+                        "%.1f / %.1f seconds",
+                        runtime.seconds(),
+                        timeoutSeconds
+                );
+
                 opMode.telemetry.update();
+                opMode.idle();
             }
-
-            // Stop all motion;
-            leftMotor.setPower(0);
-            rightMotor.setPower(0);
-
-            // Turn off RUN_TO_POSITION
+        } finally {
+            stop();
             leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            opMode.sleep(250);   // optional pause after each move.
         }
     }
 
     /**
-     * Method to perform a relative turn using degrees. Positive is clockwise.
-     * It converts degrees to the appropriate turn and calls driveInches using those measurements.
-     * @param degrees   The degrees to turn the robot.
-     * @param speed     The turning speed.
-     * @param timeoutS  The amount of time after to stop movement even if action is unfinished.
+     * Turns the robot using encoder distances. Positive degrees turn clockwise.
      */
-    public void turnDegrees(double speed, double degrees, double timeoutS) {
+    public void turnDegrees(double speed, double degrees, double timeoutSeconds) {
         double inches = (degrees / 360.0) * TURN_CIRCUMFERENCE;
-        driveInches(speed, inches, -inches, timeoutS);
+        driveInches(speed, inches, -inches, timeoutSeconds);
+    }
+
+    public double getPower(Motor motor) {
+        switch (motor) {
+            case LEFT_MOTOR: return leftPower;
+            case RIGHT_MOTOR: return rightPower;
+            default: return 0.0;
+        }
+    }
+
+    public boolean isDriving() {
+        return leftMotor.isBusy() || rightMotor.isBusy();
+    }
+
+    public void resetEncoders() {
+        stop();
+
+        leftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    public void stop() {
+        leftPower = 0.0;
+        rightPower = 0.0;
+        leftMotor.setPower(0.0);
+        rightMotor.setPower(0.0);
     }
 
     public void setMotorSpeed(Motor motor, double speed) {
-        switch (motor) {
-            case LEFT_MOTOR: leftMotor.setPower(speed); break;
-            case RIGHT_MOTOR: rightMotor.setPower(speed); break;
-        }
+        setPower(motor, speed);
     }
 
     public int getCurrentPosition(Motor motor) {
         switch (motor) {
             case LEFT_MOTOR: return leftMotor.getCurrentPosition();
             case RIGHT_MOTOR: return rightMotor.getCurrentPosition();
+            default: return 0;
         }
-        return 0;
     }
 
     public void setTargetPosition(Motor motor, int target) {
@@ -144,16 +191,25 @@ public class BasicDrivetrain {
     }
 
     public void setPower(Motor motor, double power) {
+        double clippedPower = Range.clip(power, -1.0, 1.0);
+
         switch (motor) {
-            case LEFT_MOTOR: leftMotor.setPower(power); break;
-            case RIGHT_MOTOR: rightMotor.setPower(power); break;
+            case LEFT_MOTOR:
+                leftPower = clippedPower;
+                leftMotor.setPower(clippedPower);
+                break;
+
+            case RIGHT_MOTOR:
+                rightPower = clippedPower;
+                rightMotor.setPower(clippedPower);
+                break;
         }
     }
 
     public void setMode(Motor motor, DcMotor.RunMode mode) {
         switch (motor) {
-            case LEFT_MOTOR: leftMotor.setMode(mode); break;
-            case RIGHT_MOTOR: rightMotor.setMode(mode); break;
+            case LEFT_MOTOR: leftMotor.setMode(mode);break;
+            case RIGHT_MOTOR: rightMotor.setMode(mode);break;
         }
     }
 
@@ -161,7 +217,41 @@ public class BasicDrivetrain {
         switch (motor) {
             case LEFT_MOTOR: return leftMotor.isBusy();
             case RIGHT_MOTOR: return rightMotor.isBusy();
+            default: return false;
         }
-        return false;
+    }
+
+    /**
+     * Changes the motor power gradually instead of changing it all at once.
+     */
+    private double smoothPower(double currentPower, double wantedPower, double loopTime) {
+        boolean isChangingDirection = currentPower != 0.0
+                && wantedPower != 0.0
+                && Math.signum(currentPower) != Math.signum(wantedPower);
+
+        // Slow the motor to zero before making it spin in the opposite direction.
+        if (isChangingDirection) {
+            return moveToward(currentPower, 0.0, SLOW_DOWN_RATE * loopTime);
+        }
+
+        boolean isSlowingDown = Math.abs(wantedPower) < Math.abs(currentPower);
+        double rate = isSlowingDown ? SLOW_DOWN_RATE : SPEED_UP_RATE;
+
+        return moveToward(currentPower, wantedPower, rate * loopTime);
+    }
+
+    /**
+     * Moves a value toward its target without changing it too quickly.
+     */
+    private double moveToward(double current, double target, double maximumChange) {
+        double change = Range.clip(target - current, -maximumChange, maximumChange);
+        return current + change;
+    }
+
+    /**
+     * Converts a distance in inches into motor encoder ticks.
+     */
+    private int inchesToTicks(double inches) {
+        return (int) Math.round(inches * COUNTS_PER_INCH);
     }
 }
