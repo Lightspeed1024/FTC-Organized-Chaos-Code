@@ -14,6 +14,34 @@ TeamCode &rarr; src &rarr; main &rarr; java &rarr; org.firstinspires.ftc.teamcod
 
 NEVER edit any of the source files from the FtcRobotController folder or anything outside the TeamCode folder, as those are written by FIRST and editing them will cause the project to break.
 
+## 2. How to connect from Android Studio to the Control Hub
+
+1. Power cycle the control hub first
+
+2. While connected to the WiFi with internet, go to the top and click file &rarr; Sync project with Gradle files (if file is not there, first click the 3 bars at the top left, then file will appear)
+
+3. Wait for the blue bar at the bottom right to disappear
+
+4. Then, go to the top and click Build &rarr; Assemble Project
+
+5. Wait for the blue bar at the bottom right to disappear
+
+6. Go to the right bar and click Gradle (the button with the elephant), and click the button with a cloud and a bar running through it.
+
+1. After moving your mouse away, that cloud button should be highlighted a lighter gray. 
+
+2. Connect to the robot WiFi at 36121-RC
+
+3. Click the terminal at the bottom left (circled blue in image)
+
+4. Run ```& "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" connect 192.168.43.1:5555```
+
+5. The top should now show the REV Control Hub instead of No Devices in the image.
+
+6. To run the code, click the green triangle or refresh arrow at the top.
+
+7. You can now select the code on the driver station.
+
 ## 2. How to use a older version
 
 To revert to an older version on GitHub, you have two options: one for just temporarily viewing it, and another mostly permanent option if you need to use it a lot and edit the version. 
