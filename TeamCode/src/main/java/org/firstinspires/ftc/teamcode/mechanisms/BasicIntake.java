@@ -10,8 +10,8 @@ public class BasicIntake {
     public void init(HardwareMap hwMap) {
         intake = hwMap.get(DcMotor.class, "intake");
 
-        intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         intake.setDirection(DcMotor.Direction.FORWARD);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
