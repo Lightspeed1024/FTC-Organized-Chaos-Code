@@ -92,11 +92,11 @@ public class BasicTeleOpIntake extends LinearOpMode {
 
                 drivetrain.setSmoothDrivePower(wantedLeftPower, wantedRightPower, loopTime);
 
-                if (gamepad1.right_bumper) {
-                    intake.spinIntake(0.5);
+                if (gamepad2.right_trigger > 0.05) {
+                    intake.spinIntake(gamepad2.right_trigger);
                 }
-                else if (gamepad1.left_bumper) {
-                    intake.spinIntake(-0.5);
+                else if (gamepad2.left_trigger > 0.05) {
+                    intake.spinIntake(-gamepad2.left_trigger);
                 }
                 else {
                     intake.spinIntake(0.0);
