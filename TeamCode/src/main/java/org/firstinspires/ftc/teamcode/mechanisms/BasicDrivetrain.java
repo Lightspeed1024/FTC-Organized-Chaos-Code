@@ -58,6 +58,8 @@ public class BasicDrivetrain {
     public void setDrivePower(double leftPower, double rightPower) {
         leftMotor.setPower(leftPower);
         rightMotor.setPower(rightPower);
+        this.leftPower = leftPower;
+        this.rightPower = rightPower;
     }
 
     /**
@@ -68,6 +70,33 @@ public class BasicDrivetrain {
         double newRightPower = smoothPower(rightPower, wantedRightPower, loopTime);
 
         setDrivePower(newLeftPower, newRightPower);
+    }
+
+    /**
+     * Changes the motor power gradually instead of changing it all at once.
+     */
+    private double smoothPower(double currentPower, double wantedPower, double loopTime) {
+        boolean isChangingDirection = currentPower != 0.0
+                && wantedPower != 0.0
+                && Math.signum(currentPower) != Math.signum(wantedPower);
+
+        // Slow the motor to zero before making it spin in the opposite direction.
+        if (isChangingDirection) {
+            return moveToward(currentPower, 0.0, SLOW_DOWN_RATE * loopTime);
+        }
+
+        boolean isSlowingDown = Math.abs(wantedPower) < Math.abs(currentPower);
+        double rate = isSlowingDown ? SLOW_DOWN_RATE : SPEED_UP_RATE;
+
+        return moveToward(currentPower, wantedPower, rate * loopTime);
+    }
+
+    /**
+     * Moves a value toward its target without changing it too quickly.
+     */
+    private double moveToward(double current, double target, double maximumChange) {
+        double change = Range.clip(target - current, -maximumChange, maximumChange);
+        return current + change;
     }
 
     /**
@@ -219,33 +248,6 @@ public class BasicDrivetrain {
             case RIGHT_MOTOR: return rightMotor.isBusy();
             default: return false;
         }
-    }
-
-    /**
-     * Changes the motor power gradually instead of changing it all at once.
-     */
-    private double smoothPower(double currentPower, double wantedPower, double loopTime) {
-        boolean isChangingDirection = currentPower != 0.0
-                && wantedPower != 0.0
-                && Math.signum(currentPower) != Math.signum(wantedPower);
-
-        // Slow the motor to zero before making it spin in the opposite direction.
-        if (isChangingDirection) {
-            return moveToward(currentPower, 0.0, SLOW_DOWN_RATE * loopTime);
-        }
-
-        boolean isSlowingDown = Math.abs(wantedPower) < Math.abs(currentPower);
-        double rate = isSlowingDown ? SLOW_DOWN_RATE : SPEED_UP_RATE;
-
-        return moveToward(currentPower, wantedPower, rate * loopTime);
-    }
-
-    /**
-     * Moves a value toward its target without changing it too quickly.
-     */
-    private double moveToward(double current, double target, double maximumChange) {
-        double change = Range.clip(target - current, -maximumChange, maximumChange);
-        return current + change;
     }
 
     /**

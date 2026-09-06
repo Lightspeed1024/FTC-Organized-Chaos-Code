@@ -18,7 +18,6 @@ public class BasicTeleOp extends LinearOpMode {
     private static final double TURN_SPEED = 0.80;
     private static final double MOVING_TURN_SPEED = 0.55;
     BasicDrivetrain drivetrain = new BasicDrivetrain();
-    BasicIntake intake = new BasicIntake();
     private final BasicDrivetrain.Motor leftMotor = BasicDrivetrain.Motor.LEFT_MOTOR;
     private final BasicDrivetrain.Motor rightMotor = BasicDrivetrain.Motor.RIGHT_MOTOR;
 
@@ -91,16 +90,6 @@ public class BasicTeleOp extends LinearOpMode {
 
                 drivetrain.setSmoothDrivePower(wantedLeftPower, wantedRightPower, loopTime);
 
-                if (gamepad1.right_bumper) {
-                    intake.spinIntake(1.0);
-                }
-                else if (gamepad1.left_bumper) {
-                    intake.spinIntake(-1.0);
-                }
-                else {
-                    intake.spinIntake(0.0);
-                }
-
                 String driveMode;
 
                 if (slowAmount > 0.05) {
@@ -128,7 +117,8 @@ public class BasicTeleOp extends LinearOpMode {
                         drivetrain.getPower(leftMotor),
                         drivetrain.getPower(rightMotor)
                 );
-                telemetry.addData("Intake Speed", intake.getSpeed());
+                telemetry.addData("Wanted Power", "Left %.2f Right: %.2f",
+                        wantedLeftPower, wantedRightPower);
                 telemetry.update();
                 idle();
             }
