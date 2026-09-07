@@ -16,8 +16,12 @@ public class BasicIntake {
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
+    /**
+     * A positive speed makes it intake, while a negative makes it outtake.
+     * @param speed The speed at which to spin.
+     */
     public void spinIntake(double speed) {
-        intake.setPower(speed);
+        intake.setPower(-speed);
     }
 
     public double getSpeed() {
