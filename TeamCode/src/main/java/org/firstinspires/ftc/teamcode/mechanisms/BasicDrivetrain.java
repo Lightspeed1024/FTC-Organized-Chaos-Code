@@ -29,7 +29,12 @@ public class BasicDrivetrain {
                     / (WHEEL_DIAMETER_INCHES * Math.PI);
 
     /**
-     * Connects the code to the drivetrain motors and prepares them for driving.
+     * A replacement for the constructor of this class (making a custom method allows more functionalities than constructor).
+     * It initializes all the motors and configures their settings.
+     * NEEDS TO BE CALLED EVERY TIME THIS CLASS IS INSTANTIATED.
+     * @param opMode Pass in "this" in the OpMode. It will give the OpMode object,
+     *               allowing this class to use things like telemetry.
+     * @param hardwareMap Pass in hardwareMap in the OpMode, letting this class access the maps of the motors on the control hub.
      */
     public void init(LinearOpMode opMode, HardwareMap hardwareMap) {
         this.opMode = opMode;
@@ -55,6 +60,11 @@ public class BasicDrivetrain {
         resetEncoders();
     }
 
+    /**
+     * Directly sets the powers for both of the motors and updates them instantly.
+     * @param leftPower Left motor power.
+     * @param rightPower Right motor power.
+     */
     public void setDrivePower(double leftPower, double rightPower) {
         leftMotor.setPower(leftPower);
         rightMotor.setPower(rightPower);
@@ -73,7 +83,7 @@ public class BasicDrivetrain {
     }
 
     /**
-     * Changes the motor power gradually instead of changing it all at once.
+     * Calculates the maximum change for a single motor every loop.
      */
     private double smoothPower(double currentPower, double wantedPower, double loopTime) {
         boolean isChangingDirection = currentPower != 0.0
@@ -92,7 +102,7 @@ public class BasicDrivetrain {
     }
 
     /**
-     * Moves a value toward its target without changing it too quickly.
+     * Moves a value toward its target within the bounds of the maximumChange parameter.
      */
     private double moveToward(double current, double target, double maximumChange) {
         double change = Range.clip(target - current, -maximumChange, maximumChange);
