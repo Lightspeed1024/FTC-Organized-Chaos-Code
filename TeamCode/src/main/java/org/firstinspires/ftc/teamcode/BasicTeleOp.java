@@ -156,12 +156,16 @@ public class BasicTeleOp extends LinearOpMode {
     }
 
     /**
-     * Finds a value between start and end.
-     * An amount of 0 returns start, 1 returns end, and 0.5 returns
-     * the value halfway between them.
+     * A linear interpolation method that moves the start value towards the end value by a certain percent.
+     * For example, a start value of 10 and an end value of 30 along with an amount of 0.75 would
+     * add 75% of the difference (20) to 10, returning 25.
+     * @param start The start value
+     * @param end The end value
+     * @param amount The percent to move from start to end, WRITTEN AS A DECIMAL
+     * @return The new value
      */
     private double interpolate(double start, double end, double amount) {
         amount = Range.clip(amount, 0.0, 1.0);
-        return start + (end - start) * amount;
+        return start + amount*(end - start);
     }
 }
