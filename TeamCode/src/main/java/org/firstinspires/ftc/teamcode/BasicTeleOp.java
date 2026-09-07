@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.mechanisms.BasicDrivetrain;
 import org.firstinspires.ftc.teamcode.mechanisms.BasicIntake;
 
 @TeleOp
-public class BasicTeleOpIntake extends LinearOpMode {
+public class BasicTeleOp extends LinearOpMode {
     private final ElapsedTime loopTimer = new ElapsedTime();
     private static final double NORMAL_SPEED = 0.75;
     private static final double FAST_SPEED = 1.00;
