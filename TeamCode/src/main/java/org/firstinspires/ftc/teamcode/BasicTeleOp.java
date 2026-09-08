@@ -7,18 +7,20 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.mechanisms.BasicDrivetrain;
 import org.firstinspires.ftc.teamcode.mechanisms.BasicIntake;
+import org.firstinspires.ftc.teamcode.utilities.RobotMath;
 
 @TeleOp
 public class BasicTeleOp extends LinearOpMode {
     private final ElapsedTime loopTimer = new ElapsedTime();
-    private static final double NORMAL_SPEED = 0.75;
-    private static final double FAST_SPEED = 1.00;
-    private static final double SLOW_SPEED = 0.35;
-    private static final double DEAD_ZONE = 0.06;
-    private static final double TURN_SPEED = 0.80;
-    private static final double MOVING_TURN_SPEED = 0.55;
+//    private static double normalSpeed = 0.75;
+//    private static double fastSpeed = 1.00;
+//    private static double slowSpeed = 0.35;
+//    private static double deadZone = 0.06;
+//    private static double turnSpeed = 0.80;
+//    private static double movingTurnSpeed = 0.55;
     BasicDrivetrain drivetrain = new BasicDrivetrain();
     BasicIntake intake = new BasicIntake();
+
     private final BasicDrivetrain.Motor leftMotor = BasicDrivetrain.Motor.LEFT_MOTOR;
     private final BasicDrivetrain.Motor rightMotor = BasicDrivetrain.Motor.RIGHT_MOTOR;
 
@@ -49,49 +51,6 @@ public class BasicTeleOp extends LinearOpMode {
                 double loopTime = Math.min(loopTimer.seconds(), 0.10);
                 loopTimer.reset();
 
-                // FTC reports forward movement of the left stick as a negative value.
-                double drive = fixJoystick(-gamepad1.left_stick_y);
-                double turn = fixJoystick(-gamepad1.right_stick_x);
-
-                // Cubing makes small stick movements easier to control.
-                drive = Math.copySign(drive * drive, drive);
-                turn = Math.copySign(turn * turn, turn);
-
-                double slowAmount = Range.clip(gamepad1.left_trigger, 0.0, 1.0);
-                double boostAmount = Range.clip(gamepad1.right_trigger, 0.0, 1.0);
-
-                // The left trigger slows down the speed, while the right trigger boosts it up
-                double speedLimit;
-                if (slowAmount > 0.05) {
-                    speedLimit = interpolate(NORMAL_SPEED, SLOW_SPEED, slowAmount);
-                }
-                else {
-                    speedLimit = interpolate(NORMAL_SPEED, FAST_SPEED, boostAmount);
-                }
-
-                // Turning is less sensitive while the robot is moving quickly.
-                double turnLimit = interpolate(TURN_SPEED, MOVING_TURN_SPEED, Math.abs(drive));
-                turn *= turnLimit;
-
-                double wantedLeftPower = drive + turn;
-                double wantedRightPower = drive - turn;
-
-                // Scale both powers equally if either one is above full power.
-                double biggestPower = Math.max(
-                        Math.abs(wantedLeftPower),
-                        Math.abs(wantedRightPower)
-                );
-
-                if (biggestPower > 1.0) {
-                    wantedLeftPower /= biggestPower;
-                    wantedRightPower /= biggestPower;
-                }
-
-                wantedLeftPower *= speedLimit;
-                wantedRightPower *= speedLimit;
-
-                drivetrain.setSmoothDrivePower(wantedLeftPower, wantedRightPower, loopTime);
-
                 if (gamepad2.right_trigger > 0.05) {
                     intake.spinIntake(gamepad2.right_trigger);
                 }
@@ -104,10 +63,10 @@ public class BasicTeleOp extends LinearOpMode {
 
                 String driveMode;
 
-                if (slowAmount > 0.05) {
+                if (drivetrain.slowAmount > 0.05) {
                     driveMode = "SLOW";
                 }
-                else if (boostAmount > 0.05) {
+                else if (drivetrain.boostAmount > 0.05) {
                     driveMode = "BOOST";
                 }
                 else {
@@ -115,8 +74,8 @@ public class BasicTeleOp extends LinearOpMode {
                 }
 
                 telemetry.addData("Drive Mode", driveMode);
-                telemetry.addData("Speed Limit", "%.0f%%", speedLimit * 100.0);
-                telemetry.addData("Right Trigger", "%.0f%%", boostAmount * 100.0);
+                telemetry.addData("Speed Limit", "%.0f%%", drivetrain.speedLimit * 100.0);
+                telemetry.addData("Right Trigger", "%.0f%%", drivetrain.boostAmount * 100.0);
                 telemetry.addData(
                         "Encoders",
                         "Left: %d  Right: %d",
@@ -130,7 +89,7 @@ public class BasicTeleOp extends LinearOpMode {
                         drivetrain.getPower(rightMotor)
                 );
                 telemetry.addData("Wanted Power", "Left %.2f Right: %.2f",
-                        wantedLeftPower, wantedRightPower);
+                        drivetrain.wantedLeftPower, drivetrain.wantedRightPower);
                 telemetry.addData("Intake Speed", intake.getSpeed());
                 telemetry.update();
                 idle();
@@ -147,25 +106,11 @@ public class BasicTeleOp extends LinearOpMode {
     private double fixJoystick(double stickValue) {
         double amount = Math.abs(stickValue);
 
-        if (amount <= DEAD_ZONE) {
+        if (amount <= BasicDrivetrain.DEAD_ZONE) {
             return 0.0;
         }
 
-        double fixedAmount = (amount - DEAD_ZONE) / (1.0 - DEAD_ZONE);
-        return Math.copySign(fixedAmount, stickValue);
-    }
-
-    /**
-     * A linear interpolation method that moves the start value towards the end value by a certain percent.
-     * For example, a start value of 10 and an end value of 30 along with an amount of 0.75 would
-     * add 75% of the difference (20) to 10, returning 25.
-     * @param start The start value
-     * @param end The end value
-     * @param amount The percent to move from start to end, WRITTEN AS A DECIMAL
-     * @return The new value
-     */
-    private double interpolate(double start, double end, double amount) {
-        amount = Range.clip(amount, 0.0, 1.0);
-        return start + amount*(end - start);
+        double fixedAmount = (amount - BasicDrivetrain.DEAD_ZONE) / (1.0 - BasicDrivetrain.DEAD_ZONE);
+        return -Math.copySign(fixedAmount, stickValue);
     }
 }
