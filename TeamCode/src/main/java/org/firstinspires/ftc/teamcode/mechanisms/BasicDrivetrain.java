@@ -1,16 +1,22 @@
 package org.firstinspires.ftc.teamcode.mechanisms;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.utilities.RobotMath;
 
 public class BasicDrivetrain {
     private DcMotor leftMotor;
     private DcMotor rightMotor;
     public enum Motor {LEFT_MOTOR, RIGHT_MOTOR}
     private LinearOpMode opMode;
+    private Telemetry telemetry;
     private ElapsedTime runtime = new ElapsedTime();
 
     private double leftPower = 0.0;
@@ -28,6 +34,26 @@ public class BasicDrivetrain {
             (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION)
                     / (WHEEL_DIAMETER_INCHES * Math.PI);
 
+    public static final double DEAD_ZONE = 0.06;
+
+
+    // Instance variables: these are not static or final and can be customized in each TeleOp.
+    public double normalSpeed = 0.75;
+    public double fastSpeed = 1.00;
+    public double slowSpeed = 0.35;
+    public double turnSpeed = 0.80;
+    public double movingTurnSpeed = 0.55;
+    public double speedUpRate = 2.75;
+    public double slowDownRate = 5.50;
+
+    // Driving Outputs (Read-Only)
+    public double slowAmount;
+    public double boostAmount;
+    public double speedLimit;
+    public double wantedLeftPower;
+    public double wantedRightPower;
+    public double turnLimit;
+
     /**
      * A replacement for the constructor of this class (making a custom method allows more functionalities than constructor).
      * It initializes all the motors and configures their settings.
@@ -37,7 +63,7 @@ public class BasicDrivetrain {
      * @param hardwareMap Pass in hardwareMap in the OpMode, letting this class access the maps of the motors on the control hub.
      */
     public void init(LinearOpMode opMode, HardwareMap hardwareMap) {
-        this.opMode = opMode;
+        telemetry = opMode.telemetry;
 
         leftMotor = hardwareMap.get(DcMotor.class, "leftMotor");
         rightMotor = hardwareMap.get(DcMotor.class, "rightMotor");
@@ -58,6 +84,51 @@ public class BasicDrivetrain {
         rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         resetEncoders();
+    }
+
+    public void driveTeleOp(double leftY, double rightX, double leftTrigger, double rightTrigger, double loopTime) {
+
+        // The y-axis of gamepads are reversed
+        double drive = RobotMath.fixJoystick(leftY, DEAD_ZONE);
+        double turn = RobotMath.fixJoystick(rightX, DEAD_ZONE);
+
+        // Squaring makes small stick movements easier to control.
+        drive = Math.copySign(drive * drive, drive);
+        turn = Math.copySign(turn * turn, turn);
+
+        slowAmount = Range.clip(leftTrigger, 0.0, 1.0);
+        boostAmount = Range.clip(rightTrigger, 0.0, 1.0);
+
+        // The left trigger slows down the speed, while the right trigger boosts it up
+        if (slowAmount > 0.05) {
+            speedLimit = RobotMath.interpolate(normalSpeed, slowSpeed, slowAmount);
+        }
+        else {
+            speedLimit = RobotMath.interpolate(normalSpeed, fastSpeed, boostAmount);
+        }
+
+        // Turning is less sensitive while the robot is moving quickly.
+        turnLimit = RobotMath.interpolate(turnSpeed, movingTurnSpeed, Math.abs(drive));
+        turn *= turnLimit;
+
+        wantedLeftPower = drive + turn;
+        wantedRightPower = drive - turn;
+
+        // Scale both powers equally if either one is above full power.
+        double biggestPower = Math.max(
+                Math.abs(wantedLeftPower),
+                Math.abs(wantedRightPower)
+        );
+
+        if (biggestPower > 1.0) {
+            wantedLeftPower /= biggestPower;
+            wantedRightPower /= biggestPower;
+        }
+
+        wantedLeftPower *= speedLimit;
+        wantedRightPower *= speedLimit;
+
+        setSmoothDrivePower(wantedLeftPower, wantedRightPower, loopTime);
     }
 
     /**
@@ -92,11 +163,11 @@ public class BasicDrivetrain {
 
         // Slow the motor to zero before making it spin in the opposite direction.
         if (isChangingDirection) {
-            return moveToward(currentPower, 0.0, SLOW_DOWN_RATE * loopTime);
+            return moveToward(currentPower, 0.0, slowDownRate * loopTime);
         }
 
         boolean isSlowingDown = Math.abs(wantedPower) < Math.abs(currentPower);
-        double rate = isSlowingDown ? SLOW_DOWN_RATE : SPEED_UP_RATE;
+        double rate = isSlowingDown ? slowDownRate : speedUpRate;
 
         return moveToward(currentPower, wantedPower, rate * loopTime);
     }
@@ -142,28 +213,28 @@ public class BasicDrivetrain {
                     && runtime.seconds() < timeoutSeconds
                     && (leftMotor.isBusy() || rightMotor.isBusy())) {
 
-                opMode.telemetry.addData(
+                telemetry.addData(
                         "Target",
                         "Left: %d  Right: %d",
                         leftTarget,
                         rightTarget
                 );
 
-                opMode.telemetry.addData(
+                telemetry.addData(
                         "Position",
                         "Left: %d  Right: %d",
                         leftMotor.getCurrentPosition(),
                         rightMotor.getCurrentPosition()
                 );
 
-                opMode.telemetry.addData(
+                telemetry.addData(
                         "Time",
                         "%.1f / %.1f seconds",
                         runtime.seconds(),
                         timeoutSeconds
                 );
 
-                opMode.telemetry.update();
+                telemetry.update();
                 opMode.idle();
             }
         } finally {
