@@ -51,6 +51,12 @@ public class BasicTeleOp extends LinearOpMode {
                 double loopTime = Math.min(loopTimer.seconds(), 0.10);
                 loopTimer.reset();
 
+                drivetrain.driveTeleOp(gamepad1.left_stick_y,
+                        gamepad1.right_stick_x,
+                        gamepad1.left_trigger,
+                        gamepad1.right_trigger,
+                        loopTime);
+
                 if (gamepad2.right_trigger > 0.05) {
                     intake.spinIntake(gamepad2.right_trigger);
                 }
@@ -98,19 +104,5 @@ public class BasicTeleOp extends LinearOpMode {
             // Always stop the motors when TeleOp ends.
             drivetrain.stop();
         }
-    }
-
-    /**
-     * Removes small values caused by joystick drift while keeping the full range.
-     */
-    private double fixJoystick(double stickValue) {
-        double amount = Math.abs(stickValue);
-
-        if (amount <= BasicDrivetrain.DEAD_ZONE) {
-            return 0.0;
-        }
-
-        double fixedAmount = (amount - BasicDrivetrain.DEAD_ZONE) / (1.0 - BasicDrivetrain.DEAD_ZONE);
-        return -Math.copySign(fixedAmount, stickValue);
     }
 }

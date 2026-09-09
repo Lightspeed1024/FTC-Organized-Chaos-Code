@@ -17,7 +17,6 @@ public class BasicDrivetrain {
     public enum Motor {LEFT_MOTOR, RIGHT_MOTOR}
     private LinearOpMode opMode;
     private Telemetry telemetry;
-    private Gamepad gamepad1;
     private ElapsedTime runtime = new ElapsedTime();
 
     private double leftPower = 0.0;
@@ -65,7 +64,6 @@ public class BasicDrivetrain {
      */
     public void init(LinearOpMode opMode, HardwareMap hardwareMap) {
         telemetry = opMode.telemetry;
-        gamepad1 = opMode.gamepad1;
 
         leftMotor = hardwareMap.get(DcMotor.class, "leftMotor");
         rightMotor = hardwareMap.get(DcMotor.class, "rightMotor");
@@ -88,18 +86,18 @@ public class BasicDrivetrain {
         resetEncoders();
     }
 
-    public void driveTeleOp(double loopTime) {
+    public void driveTeleOp(double leftY, double rightX, double leftTrigger, double rightTrigger, double loopTime) {
 
         // The y-axis of gamepads are reversed
-        double drive = RobotMath.fixJoystick(gamepad1.left_stick_y, DEAD_ZONE);
-        double turn = RobotMath.fixJoystick(-gamepad1.right_stick_x, DEAD_ZONE);
+        double drive = RobotMath.fixJoystick(leftY, DEAD_ZONE);
+        double turn = RobotMath.fixJoystick(rightX, DEAD_ZONE);
 
         // Squaring makes small stick movements easier to control.
         drive = Math.copySign(drive * drive, drive);
         turn = Math.copySign(turn * turn, turn);
 
-        slowAmount = Range.clip(gamepad1.left_trigger, 0.0, 1.0);
-        boostAmount = Range.clip(gamepad1.right_trigger, 0.0, 1.0);
+        slowAmount = Range.clip(leftTrigger, 0.0, 1.0);
+        boostAmount = Range.clip(rightTrigger, 0.0, 1.0);
 
         // The left trigger slows down the speed, while the right trigger boosts it up
         if (slowAmount > 0.05) {
