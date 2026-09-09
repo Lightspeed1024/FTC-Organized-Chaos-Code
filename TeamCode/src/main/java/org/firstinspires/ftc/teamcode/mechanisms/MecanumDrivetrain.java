@@ -67,28 +67,6 @@ public class MecanumDrivetrain extends Drivetrain{
         imu.initialize(new IMU.Parameters(RevOrientation));
     }
 
-    private MecanumPowers calculateMotorPowers(double forward, double strafe, double turn) {
-        double frontLeftPower = forward + strafe + turn;
-        double backLeftPower = forward - strafe + turn;
-        double frontRightPower = forward - strafe - turn;
-        double backRightPower = forward + strafe - turn;
-
-        double highestPower = 1.0;
-
-        highestPower = Math.max(highestPower, Math.abs(frontLeftPower));
-        highestPower = Math.max(highestPower, Math.abs(backLeftPower));
-        highestPower = Math.max(highestPower, Math.abs(frontRightPower));
-        highestPower = Math.max(highestPower, Math.abs(backRightPower));
-
-        frontLeftPower /= highestPower;
-        backLeftPower /= highestPower;
-        frontRightPower /= highestPower;
-        backRightPower /= highestPower;
-
-        return new MecanumPowers(frontLeftPower, backLeftPower, frontRightPower, backRightPower);
-    }
-
-
     /**
      * A robot-relative drive method. The movements are made relative to the robot's POV.
      * @param forward The power at which to drive forward, typically given by the left stick y-axis on the gamepad.
@@ -96,19 +74,34 @@ public class MecanumDrivetrain extends Drivetrain{
      * @param turn The power to rotate, typically the x-axis of the right stick.
      */
     public void drive(double forward, double strafe, double turn, double loopTime, boolean smooth) {
-        MecanumPowers motorPowers = calculateMotorPowers(forward, strafe, turn);
+        double wantedFrontLeftPower = forward + strafe + turn;
+        double wantedBackLeftPower = forward - strafe + turn;
+        double wantedFrontRightPower = forward - strafe - turn;
+        double wantedBackRightPower = forward + strafe - turn;
+
+        double highestPower = 1.0;
+
+        highestPower = Math.max(highestPower, Math.abs(wantedFrontLeftPower));
+        highestPower = Math.max(highestPower, Math.abs(wantedBackLeftPower));
+        highestPower = Math.max(highestPower, Math.abs(wantedFrontRightPower));
+        highestPower = Math.max(highestPower, Math.abs(wantedBackRightPower));
+
+        wantedFrontLeftPower /= highestPower;
+        wantedBackLeftPower /= highestPower;
+        wantedFrontRightPower /= highestPower;
+        wantedBackRightPower /= highestPower;
 
         if (smooth) {
-            frontLeftPower = smoothPower(frontLeftPower, motorPowers.frontLeftPower, slowDownRate, speedUpRate, loopTime);
-            backLeftPower = smoothPower(backLeftPower, motorPowers.backLeftPower, slowDownRate, speedUpRate, loopTime);
-            frontRightPower = smoothPower(frontRightPower, motorPowers.frontRightPower, slowDownRate, speedUpRate, loopTime);
-            backRightPower = smoothPower(backRightPower, motorPowers.backRightPower, slowDownRate, speedUpRate, loopTime);
+            frontLeftPower = smoothPower(frontLeftPower, wantedFrontLeftPower, slowDownRate, speedUpRate, loopTime);
+            backLeftPower = smoothPower(backLeftPower, wantedBackLeftPower, slowDownRate, speedUpRate, loopTime);
+            frontRightPower = smoothPower(frontRightPower, wantedFrontRightPower, slowDownRate, speedUpRate, loopTime);
+            backRightPower = smoothPower(backRightPower, wantedBackRightPower, slowDownRate, speedUpRate, loopTime);
         }
         else {
-            frontLeftPower = motorPowers.frontLeftPower;
-            backLeftPower = motorPowers.backLeftPower;
-            frontRightPower = motorPowers.frontRightPower;
-            backRightPower = motorPowers.backRightPower;
+            frontLeftPower = wantedFrontLeftPower;
+            backLeftPower = wantedBackLeftPower;
+            frontRightPower = wantedFrontRightPower;
+            backRightPower = wantedBackRightPower;
         }
 
         frontLeftMotor.setPower(frontLeftPower);
@@ -125,24 +118,13 @@ public class MecanumDrivetrain extends Drivetrain{
      */
     public void driveFieldRelative(double forward, double strafe, double turn, double loopTime, boolean smooth) {
         double theta = Math.atan2(forward, strafe);
-        double r = Math.hypot(strafe, forward);
+        double speed = Math.hypot(strafe, forward);
 
-        theta = AngleUnit.normalizeRadians(theta - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
+        double robotTheta = AngleUnit.normalizeRadians(theta - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
 
-        double newForward = r * Math.sin(theta);
-        double newStrafe = r * Math.cos(theta);
+        double newForward = speed * Math.sin(robotTheta);
+        double newStrafe = speed * Math.cos(robotTheta);
 
         this.drive(newForward, newStrafe, turn, loopTime, smooth);
-    }
-
-    private static class MecanumPowers {
-        public double frontLeftPower, backLeftPower, frontRightPower, backRightPower;
-
-        public MecanumPowers(double frontLeftPower, double backLeftPower, double frontRightPower, double backRightPower) {
-            this.frontLeftPower = frontLeftPower;
-            this.backLeftPower = backLeftPower;
-            this.frontRightPower = frontRightPower;
-            this.backRightPower = backRightPower;
-        }
     }
 }

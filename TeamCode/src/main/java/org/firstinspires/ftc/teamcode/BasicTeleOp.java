@@ -82,7 +82,7 @@ public class BasicTeleOp extends LinearOpMode {
                 turnLimit = RobotMath.interpolate(TURN_SPEED, MOVING_TURN_SPEED, Math.abs(drive));
                 turn *= turnLimit;
 
-                drivetrain.driveTeleOp(drive, turn, loopTime);
+                drivetrain.drive(drive, turn, loopTime, true);
 
                 if (gamepad2.right_trigger > 0.05) {
                     intake.spinIntake(gamepad2.right_trigger);

@@ -75,8 +75,7 @@ public class BasicDrivetrain extends Drivetrain{
         resetEncoders();
     }
 
-    public void driveTeleOp(double drive, double turn, double loopTime) {
-
+    public void drive(double drive, double turn, double loopTime, boolean smooth) {
         wantedLeftPower = drive + turn;
         wantedRightPower = drive - turn;
 
@@ -91,7 +90,12 @@ public class BasicDrivetrain extends Drivetrain{
             wantedRightPower /= biggestPower;
         }
 
-        setSmoothDrivePower(wantedLeftPower, wantedRightPower, loopTime);
+        if (smooth) {
+            setSmoothDrivePower(wantedLeftPower, wantedRightPower, loopTime);
+        }
+        else {
+            setDrivePower(wantedLeftPower, wantedRightPower);
+        }
     }
 
     /**
@@ -121,6 +125,10 @@ public class BasicDrivetrain extends Drivetrain{
     /**
      * Uses the motor encoders to move each side of the robot a set distance.
      * Positive distances move forward, and negative distances move backward.
+     * @param speed The speed to drive at.
+     * @param leftInches The distance to move the left wheels.
+     * @param rightInches The distance to move the right wheels.
+     * @param timeoutSeconds The amount of seconds after which to stop movement even if it is incomplete.
      */
     public void driveInches(double speed, double leftInches, double rightInches, double timeoutSeconds) {
         if (!opMode.opModeIsActive()) {
@@ -190,6 +198,29 @@ public class BasicDrivetrain extends Drivetrain{
         driveInches(speed, inches, -inches, timeoutSeconds);
     }
 
+    public void stop() {
+        leftPower = 0.0;
+        rightPower = 0.0;
+        leftMotor.setPower(0.0);
+        rightMotor.setPower(0.0);
+    }
+
+    public void setPower(Motor motor, double power) {
+        double clippedPower = Range.clip(power, -1.0, 1.0);
+
+        switch (motor) {
+            case LEFT_MOTOR:
+                leftPower = clippedPower;
+                leftMotor.setPower(clippedPower);
+                break;
+
+            case RIGHT_MOTOR:
+                rightPower = clippedPower;
+                rightMotor.setPower(clippedPower);
+                break;
+        }
+    }
+
     public double getPower(Motor motor) {
         switch (motor) {
             case LEFT_MOTOR: return leftPower;
@@ -212,12 +243,6 @@ public class BasicDrivetrain extends Drivetrain{
         rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    public void stop() {
-        leftPower = 0.0;
-        rightPower = 0.0;
-        leftMotor.setPower(0.0);
-        rightMotor.setPower(0.0);
-    }
 
     public void setMotorSpeed(Motor motor, double speed) {
         setPower(motor, speed);
@@ -238,21 +263,6 @@ public class BasicDrivetrain extends Drivetrain{
         }
     }
 
-    public void setPower(Motor motor, double power) {
-        double clippedPower = Range.clip(power, -1.0, 1.0);
-
-        switch (motor) {
-            case LEFT_MOTOR:
-                leftPower = clippedPower;
-                leftMotor.setPower(clippedPower);
-                break;
-
-            case RIGHT_MOTOR:
-                rightPower = clippedPower;
-                rightMotor.setPower(clippedPower);
-                break;
-        }
-    }
 
     public void setMode(Motor motor, DcMotor.RunMode mode) {
         switch (motor) {
