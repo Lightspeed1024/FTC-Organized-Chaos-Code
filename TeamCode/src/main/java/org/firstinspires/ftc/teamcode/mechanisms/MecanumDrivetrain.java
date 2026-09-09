@@ -7,11 +7,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class MecanumDrivetrain extends Drivetrain{
     private DcMotor frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
     private IMU imu;
+    private Telemetry telemetry;
 
     private static final double SPEED_UP_RATE = 2.75;
     private static final double SLOW_DOWN_RATE = 5.50;
@@ -21,8 +23,8 @@ public class MecanumDrivetrain extends Drivetrain{
     private double backRightPower = 0.0;
 
 
-    public double speedUpRate = 2.75;
-    public double slowDownRate = 5.50;
+    private double speedUpRate;
+    private double slowDownRate;
 
 
     // Driving Outputs (Read-Only)
@@ -39,7 +41,11 @@ public class MecanumDrivetrain extends Drivetrain{
      * @param opMode Pass in "this". It will provide the OpMode functionalities to this class.
      * @param hwMap Pass in "hardwareMap". This will give the class access to the motor configurations on the Control Hub.
      */
-    public void init(LinearOpMode opMode, HardwareMap hwMap) {
+    public void init(LinearOpMode opMode, HardwareMap hwMap, double slowDownRate, double speedUpRate) {
+        this.telemetry = opMode.telemetry;
+        this.slowDownRate = slowDownRate;
+        this.speedUpRate = speedUpRate;
+
         frontLeftMotor = hwMap.get(DcMotor.class, "frontLeftMotor");
         backLeftMotor = hwMap.get(DcMotor.class, "backLeftMotor");
         frontRightMotor = hwMap.get(DcMotor.class, "frontRightMotor");

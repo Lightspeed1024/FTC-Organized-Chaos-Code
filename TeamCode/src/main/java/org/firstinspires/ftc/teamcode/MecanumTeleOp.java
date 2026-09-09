@@ -16,13 +16,15 @@ public class MecanumTeleOp extends LinearOpMode {
     private static final double FAST_SPEED = 1.00;
     private static final double SLOW_SPEED = 0.35;
     private static final double DEAD_ZONE = 0.06;
+    private static final double SPEED_UP_RATE = 2.75;
+    private static final double SLOW_DOWN_RATE = 5.50;
 
     private final MecanumDrivetrain drivetrain = new MecanumDrivetrain();
     private final BasicIntake intake = new BasicIntake();
 
     @Override
     public void runOpMode() throws InterruptedException {
-        drivetrain.init(this, hardwareMap);
+        drivetrain.init(this, hardwareMap, SLOW_DOWN_RATE, SPEED_UP_RATE);
         intake.init(hardwareMap);
 
         telemetry.addLine("Robot is ready");

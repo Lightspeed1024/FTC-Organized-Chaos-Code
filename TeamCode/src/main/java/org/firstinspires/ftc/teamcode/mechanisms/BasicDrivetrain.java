@@ -31,6 +31,8 @@ public class BasicDrivetrain extends Drivetrain{
     private static final double COUNTS_PER_INCH =
             (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION)
                     / (WHEEL_DIAMETER_INCHES * Math.PI);
+    private double slowDownRate;
+    private double speedUpRate;
 
 
     // Driving Outputs (Read-Only)
@@ -46,8 +48,11 @@ public class BasicDrivetrain extends Drivetrain{
      *               allowing this class to use things like telemetry.
      * @param hardwareMap Pass in hardwareMap in the OpMode, letting this class access the maps of the motors on the control hub.
      */
-    public void init(LinearOpMode opMode, HardwareMap hardwareMap) {
+    public void init(LinearOpMode opMode, HardwareMap hardwareMap, double slowDownRate, double speedUpRate) {
         telemetry = opMode.telemetry;
+        this.slowDownRate = slowDownRate;
+        this.speedUpRate = speedUpRate;
+
 
         leftMotor = hardwareMap.get(DcMotor.class, "leftMotor");
         rightMotor = hardwareMap.get(DcMotor.class, "rightMotor");
@@ -70,7 +75,7 @@ public class BasicDrivetrain extends Drivetrain{
         resetEncoders();
     }
 
-    public void driveTeleOp(double drive, double turn, double slowDownRate, double speedUpRate, double loopTime) {
+    public void driveTeleOp(double drive, double turn, double loopTime) {
 
         wantedLeftPower = drive + turn;
         wantedRightPower = drive - turn;

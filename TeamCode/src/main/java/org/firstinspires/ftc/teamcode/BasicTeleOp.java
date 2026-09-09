@@ -32,7 +32,7 @@ public class BasicTeleOp extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        drivetrain.init(this, hardwareMap);
+        drivetrain.init(this, hardwareMap, SLOW_DOWN_RATE, SPEED_UP_RATE);
         intake.init(hardwareMap);
 
         telemetry.addLine("Robot is ready");
@@ -82,7 +82,7 @@ public class BasicTeleOp extends LinearOpMode {
                 turnLimit = RobotMath.interpolate(TURN_SPEED, MOVING_TURN_SPEED, Math.abs(drive));
                 turn *= turnLimit;
 
-                drivetrain.driveTeleOp(drive, turn, SLOW_DOWN_RATE, SPEED_UP_RATE, loopTime);
+                drivetrain.driveTeleOp(drive, turn, loopTime);
 
                 if (gamepad2.right_trigger > 0.05) {
                     intake.spinIntake(gamepad2.right_trigger);
