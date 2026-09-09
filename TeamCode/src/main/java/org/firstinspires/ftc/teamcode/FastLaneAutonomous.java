@@ -15,10 +15,12 @@ public class FastLaneAutonomous extends LinearOpMode {
 
     static final double     DRIVE_SPEED             = 1.0;      // Full speed ahead!
     static final double     TURN_SPEED              = 0.7;      // Slightly slower turning for precision but faster than TeleOp
+    private static final double SPEED_UP_RATE = 2.75;
+    private static final double SLOW_DOWN_RATE = 5.50;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        drivetrain.init(this, hardwareMap);
+        drivetrain.init(this, hardwareMap, SLOW_DOWN_RATE, SPEED_UP_RATE);
         // Send telemetry message to indicate successful Encoder reset
         telemetry.addData("Starting at",  "%7d :%7d",
                 drivetrain.getCurrentPosition(leftMotor),

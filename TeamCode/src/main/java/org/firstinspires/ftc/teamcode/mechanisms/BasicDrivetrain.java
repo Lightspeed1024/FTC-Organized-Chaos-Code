@@ -91,7 +91,7 @@ public class BasicDrivetrain extends Drivetrain{
             wantedRightPower /= biggestPower;
         }
 
-        setSmoothDrivePower(wantedLeftPower, wantedRightPower, slowDownRate, speedUpRate, loopTime);
+        setSmoothDrivePower(wantedLeftPower, wantedRightPower, loopTime);
     }
 
     /**
@@ -111,8 +111,6 @@ public class BasicDrivetrain extends Drivetrain{
      */
     public void setSmoothDrivePower(double wantedLeftPower,
                                     double wantedRightPower,
-                                    double slowDownRate,
-                                    double speedUpRate,
                                     double loopTime) {
         double newLeftPower = smoothPower(leftPower, wantedLeftPower, slowDownRate, speedUpRate, loopTime);
         double newRightPower = smoothPower(rightPower, wantedRightPower, slowDownRate, speedUpRate, loopTime);
