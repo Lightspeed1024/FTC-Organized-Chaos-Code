@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.utilities.RobotMath;
 
-public class BasicDrivetrain {
+public class BasicDrivetrain extends Drivetrain{
     private DcMotor leftMotor;
     private DcMotor rightMotor;
     public enum Motor {LEFT_MOTOR, RIGHT_MOTOR}
@@ -27,32 +27,16 @@ public class BasicDrivetrain {
     private static final double DRIVE_GEAR_REDUCTION = 1.0;
     private static final double WHEEL_DIAMETER_INCHES = 3.54331;
     private static final double TRACK_WIDTH_INCHES = 16.0;
-    private static final double SPEED_UP_RATE = 2.75;
-    private static final double SLOW_DOWN_RATE = 5.50;
     private static final double TURN_CIRCUMFERENCE = Math.PI * TRACK_WIDTH_INCHES;
     private static final double COUNTS_PER_INCH =
             (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION)
                     / (WHEEL_DIAMETER_INCHES * Math.PI);
 
-    public static final double DEAD_ZONE = 0.06;
-
-
-    // Instance variables: these are not static or final and can be customized in each TeleOp.
-    public double normalSpeed = 0.75;
-    public double fastSpeed = 1.00;
-    public double slowSpeed = 0.35;
-    public double turnSpeed = 0.80;
-    public double movingTurnSpeed = 0.55;
-    public double speedUpRate = 2.75;
-    public double slowDownRate = 5.50;
 
     // Driving Outputs (Read-Only)
-    public double slowAmount;
-    public double boostAmount;
-    public double speedLimit;
+
     public double wantedLeftPower;
     public double wantedRightPower;
-    public double turnLimit;
 
     /**
      * A replacement for the constructor of this class (making a custom method allows more functionalities than constructor).
@@ -86,30 +70,7 @@ public class BasicDrivetrain {
         resetEncoders();
     }
 
-    public void driveTeleOp(double leftY, double rightX, double leftTrigger, double rightTrigger, double loopTime) {
-
-        // The y-axis of gamepads are reversed
-        double drive = RobotMath.fixJoystick(leftY, DEAD_ZONE);
-        double turn = RobotMath.fixJoystick(rightX, DEAD_ZONE);
-
-        // Squaring makes small stick movements easier to control.
-        drive = Math.copySign(drive * drive, drive);
-        turn = Math.copySign(turn * turn, turn);
-
-        slowAmount = Range.clip(leftTrigger, 0.0, 1.0);
-        boostAmount = Range.clip(rightTrigger, 0.0, 1.0);
-
-        // The left trigger slows down the speed, while the right trigger boosts it up
-        if (slowAmount > 0.05) {
-            speedLimit = RobotMath.interpolate(normalSpeed, slowSpeed, slowAmount);
-        }
-        else {
-            speedLimit = RobotMath.interpolate(normalSpeed, fastSpeed, boostAmount);
-        }
-
-        // Turning is less sensitive while the robot is moving quickly.
-        turnLimit = RobotMath.interpolate(turnSpeed, movingTurnSpeed, Math.abs(drive));
-        turn *= turnLimit;
+    public void driveTeleOp(double drive, double turn, double slowDownRate, double speedUpRate, double loopTime) {
 
         wantedLeftPower = drive + turn;
         wantedRightPower = drive - turn;
@@ -125,10 +86,7 @@ public class BasicDrivetrain {
             wantedRightPower /= biggestPower;
         }
 
-        wantedLeftPower *= speedLimit;
-        wantedRightPower *= speedLimit;
-
-        setSmoothDrivePower(wantedLeftPower, wantedRightPower, loopTime);
+        setSmoothDrivePower(wantedLeftPower, wantedRightPower, slowDownRate, speedUpRate, loopTime);
     }
 
     /**
@@ -146,38 +104,15 @@ public class BasicDrivetrain {
     /**
      * Changes motor power gradually so the robot does not jerk forward or backward.
      */
-    public void setSmoothDrivePower(double wantedLeftPower, double wantedRightPower, double loopTime) {
-        double newLeftPower = smoothPower(leftPower, wantedLeftPower, loopTime);
-        double newRightPower = smoothPower(rightPower, wantedRightPower, loopTime);
+    public void setSmoothDrivePower(double wantedLeftPower,
+                                    double wantedRightPower,
+                                    double slowDownRate,
+                                    double speedUpRate,
+                                    double loopTime) {
+        double newLeftPower = smoothPower(leftPower, wantedLeftPower, slowDownRate, speedUpRate, loopTime);
+        double newRightPower = smoothPower(rightPower, wantedRightPower, slowDownRate, speedUpRate, loopTime);
 
         setDrivePower(newLeftPower, newRightPower);
-    }
-
-    /**
-     * Calculates the maximum change for a single motor every loop.
-     */
-    private double smoothPower(double currentPower, double wantedPower, double loopTime) {
-        boolean isChangingDirection = currentPower != 0.0
-                && wantedPower != 0.0
-                && Math.signum(currentPower) != Math.signum(wantedPower);
-
-        // Slow the motor to zero before making it spin in the opposite direction.
-        if (isChangingDirection) {
-            return moveToward(currentPower, 0.0, slowDownRate * loopTime);
-        }
-
-        boolean isSlowingDown = Math.abs(wantedPower) < Math.abs(currentPower);
-        double rate = isSlowingDown ? slowDownRate : speedUpRate;
-
-        return moveToward(currentPower, wantedPower, rate * loopTime);
-    }
-
-    /**
-     * Moves a value toward its target within the bounds of the maximumChange parameter.
-     */
-    private double moveToward(double current, double target, double maximumChange) {
-        double change = Range.clip(target - current, -maximumChange, maximumChange);
-        return current + change;
     }
 
     /**

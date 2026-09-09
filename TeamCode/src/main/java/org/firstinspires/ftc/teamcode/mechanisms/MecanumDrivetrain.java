@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-public class MecanumDrivetrain {
+public class MecanumDrivetrain extends Drivetrain{
     private DcMotor frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
     private IMU imu;
 
@@ -19,6 +19,19 @@ public class MecanumDrivetrain {
     private double backLeftPower = 0.0;
     private double frontRightPower = 0.0;
     private double backRightPower = 0.0;
+
+
+    public double speedUpRate = 2.75;
+    public double slowDownRate = 5.50;
+
+
+    // Driving Outputs (Read-Only)
+    public double slowAmount;
+    public double boostAmount;
+    public double speedLimit;
+    public double wantedLeftPower;
+    public double wantedRightPower;
+    public double turnLimit;
 
     /**
      * The initializer for the MecanumDrivetrain class.
@@ -80,10 +93,10 @@ public class MecanumDrivetrain {
         MecanumPowers motorPowers = calculateMotorPowers(forward, strafe, turn);
 
         if (smooth) {
-            frontLeftPower = smoothPower(frontLeftPower, motorPowers.frontLeftPower, loopTime);
-            backLeftPower = smoothPower(backLeftPower, motorPowers.backLeftPower, loopTime);
-            frontRightPower = smoothPower(frontRightPower, motorPowers.frontRightPower, loopTime);
-            backRightPower = smoothPower(backRightPower, motorPowers.backRightPower, loopTime);
+            frontLeftPower = smoothPower(frontLeftPower, motorPowers.frontLeftPower, slowDownRate, speedUpRate, loopTime);
+            backLeftPower = smoothPower(backLeftPower, motorPowers.backLeftPower, slowDownRate, speedUpRate, loopTime);
+            frontRightPower = smoothPower(frontRightPower, motorPowers.frontRightPower, slowDownRate, speedUpRate, loopTime);
+            backRightPower = smoothPower(backRightPower, motorPowers.backRightPower, slowDownRate, speedUpRate, loopTime);
         }
         else {
             frontLeftPower = motorPowers.frontLeftPower;
@@ -114,33 +127,6 @@ public class MecanumDrivetrain {
         double newStrafe = r * Math.cos(theta);
 
         this.drive(newForward, newStrafe, turn, loopTime, smooth);
-    }
-
-    /**
-     * Moves a value toward its target without changing it too quickly.
-     */
-    private double moveToward(double current, double target, double maximumChange) {
-        double change = Range.clip(target - current, -maximumChange, maximumChange);
-        return current + change;
-    }
-
-    /**
-     * Changes the motor power gradually instead of changing it all at once.
-     */
-    private double smoothPower(double currentPower, double wantedPower, double loopTime) {
-        boolean isChangingDirection = currentPower != 0.0
-                && wantedPower != 0.0
-                && Math.signum(currentPower) != Math.signum(wantedPower);
-
-        // Slow the motor to zero before making it spin in the opposite direction.
-        if (isChangingDirection) {
-            return moveToward(currentPower, 0.0, SLOW_DOWN_RATE * loopTime);
-        }
-
-        boolean isSlowingDown = Math.abs(wantedPower) < Math.abs(currentPower);
-        double rate = isSlowingDown ? SLOW_DOWN_RATE : SPEED_UP_RATE;
-
-        return moveToward(currentPower, wantedPower, rate * loopTime);
     }
 
     private static class MecanumPowers {
