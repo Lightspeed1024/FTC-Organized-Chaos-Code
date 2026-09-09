@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.mechanisms.BasicIntake;
 import org.firstinspires.ftc.teamcode.mechanisms.MecanumDrivetrain;
+import org.firstinspires.ftc.teamcode.utilities.RobotMath;
 
 @TeleOp
 public class MecanumTeleOp extends LinearOpMode {
@@ -51,9 +52,9 @@ public class MecanumTeleOp extends LinearOpMode {
                 loopTimer.reset();
 
                 // The Y value is negative when the stick goes forward, so flip it.
-                double forward = shapeJoystick(-gamepad1.left_stick_y);
-                double strafe = shapeJoystick(gamepad1.left_stick_x);
-                double turn = shapeJoystick(gamepad1.right_stick_x);
+                double forward = RobotMath.fixJoystick(-gamepad1.left_stick_y, DEAD_ZONE);
+                double strafe = RobotMath.fixJoystick(gamepad1.left_stick_x, DEAD_ZONE);
+                double turn = RobotMath.fixJoystick(gamepad1.right_stick_x, DEAD_ZONE);
 
                 double slowAmount = Range.clip(gamepad1.left_trigger, 0.0, 1.0);
                 double boostAmount = Range.clip(gamepad1.right_trigger, 0.0, 1.0);
@@ -62,10 +63,10 @@ public class MecanumTeleOp extends LinearOpMode {
                 String driveMode;
 
                 if (slowAmount > 0.05) {
-                    speedLimit = interpolate(NORMAL_SPEED, SLOW_SPEED, slowAmount);
+                    speedLimit = RobotMath.interpolate(NORMAL_SPEED, SLOW_SPEED, slowAmount);
                     driveMode = "SLOW";
                 } else {
-                    speedLimit = interpolate(NORMAL_SPEED, FAST_SPEED, boostAmount);
+                    speedLimit = RobotMath.interpolate(NORMAL_SPEED, FAST_SPEED, boostAmount);
                     driveMode = boostAmount > 0.05 ? "BOOST" : "NORMAL";
                 }
 
@@ -101,22 +102,5 @@ public class MecanumTeleOp extends LinearOpMode {
             intake.spinIntake(0.0);
             drivetrain.drive(0.0, 0.0, 0.0, 0.0, false);
         }
-    }
-
-    /** Gets rid of joystick drift and makes small movements easier to control. */
-    private double shapeJoystick(double stickValue) {
-        double amount = Math.abs(stickValue);
-
-        if (amount <= DEAD_ZONE) {
-            return 0.0;
-        }
-
-        double fixedAmount = (amount - DEAD_ZONE) / (1.0 - DEAD_ZONE);
-        return Math.copySign(fixedAmount * fixedAmount, stickValue);
-    }
-
-    private double interpolate(double start, double end, double amount) {
-        amount = Range.clip(amount, 0.0, 1.0);
-        return start + amount * (end - start);
     }
 }
