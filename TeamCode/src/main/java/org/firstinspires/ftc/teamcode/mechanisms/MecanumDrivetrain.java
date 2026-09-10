@@ -14,26 +14,20 @@ public class MecanumDrivetrain extends Drivetrain{
     private DcMotor frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
     private IMU imu;
     private Telemetry telemetry;
+    private LinearOpMode opMode;
+    public enum Motor {FRONT_LEFT_MOTOR, FRONT_RIGHT_MOTOR, BACK_LEFT_MOTOR, BACK_RIGHT_MOTOR}
 
-    private static final double SPEED_UP_RATE = 2.75;
-    private static final double SLOW_DOWN_RATE = 5.50;
     private double frontLeftPower = 0.0;
     private double backLeftPower = 0.0;
     private double frontRightPower = 0.0;
     private double backRightPower = 0.0;
-
-
     private double speedUpRate;
     private double slowDownRate;
+    private double wantedFrontLeftPower;
+    private double wantedBackLeftPower;
+    private double wantedFrontRightPower;
+    private double wantedBackRightPower;
 
-
-    // Driving Outputs (Read-Only)
-    public double slowAmount;
-    public double boostAmount;
-    public double speedLimit;
-    public double wantedLeftPower;
-    public double wantedRightPower;
-    public double turnLimit;
 
     /**
      * The initializer for the MecanumDrivetrain class.
@@ -74,10 +68,10 @@ public class MecanumDrivetrain extends Drivetrain{
      * @param turn The power to rotate, typically the x-axis of the right stick.
      */
     public void drive(double forward, double strafe, double turn, double loopTime, boolean smooth) {
-        double wantedFrontLeftPower = forward + strafe + turn;
-        double wantedBackLeftPower = forward - strafe + turn;
-        double wantedFrontRightPower = forward - strafe - turn;
-        double wantedBackRightPower = forward + strafe - turn;
+        wantedFrontLeftPower = forward + strafe + turn;
+        wantedBackLeftPower = forward - strafe + turn;
+        wantedFrontRightPower = forward - strafe - turn;
+        wantedBackRightPower = forward + strafe - turn;
 
         double highestPower = 1.0;
 
@@ -126,5 +120,35 @@ public class MecanumDrivetrain extends Drivetrain{
         double newStrafe = speed * Math.cos(robotTheta);
 
         this.drive(newForward, newStrafe, turn, loopTime, smooth);
+    }
+
+    public double getCurrentPosition(Motor motor) {
+        switch (motor) {
+            case FRONT_LEFT_MOTOR: return frontLeftMotor.getCurrentPosition();
+            case FRONT_RIGHT_MOTOR: return frontRightMotor.getCurrentPosition();
+            case BACK_LEFT_MOTOR: return backLeftMotor.getCurrentPosition();
+            case BACK_RIGHT_MOTOR: return backRightMotor.getCurrentPosition();
+            default: return 0.0;
+        }
+    }
+
+    public double getPower(Motor motor) {
+        switch (motor) {
+            case FRONT_LEFT_MOTOR: return frontLeftPower;
+            case FRONT_RIGHT_MOTOR: return frontRightPower;
+            case BACK_LEFT_MOTOR: return backLeftPower;
+            case BACK_RIGHT_MOTOR: return backRightPower;
+            default: return 0;
+        }
+    }
+
+    public double getWantedPower(Motor motor) {
+        switch (motor) {
+            case FRONT_LEFT_MOTOR: return wantedFrontLeftPower;
+            case FRONT_RIGHT_MOTOR: return wantedFrontRightPower;
+            case BACK_LEFT_MOTOR: return wantedBackLeftPower;
+            case BACK_RIGHT_MOTOR: return wantedBackRightPower;
+            default: return 0;
+        }
     }
 }

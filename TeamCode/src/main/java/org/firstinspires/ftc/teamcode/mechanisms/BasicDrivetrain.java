@@ -33,12 +33,8 @@ public class BasicDrivetrain extends Drivetrain{
                     / (WHEEL_DIAMETER_INCHES * Math.PI);
     private double slowDownRate;
     private double speedUpRate;
-
-
-    // Driving Outputs (Read-Only)
-
-    public double wantedLeftPower;
-    public double wantedRightPower;
+    private double wantedLeftPower;
+    private double wantedRightPower;
 
     /**
      * A replacement for the constructor of this class (making a custom method allows more functionalities than constructor).
@@ -163,23 +159,17 @@ public class BasicDrivetrain extends Drivetrain{
                         "Target",
                         "Left: %d  Right: %d",
                         leftTarget,
-                        rightTarget
-                );
-
+                        rightTarget);
                 telemetry.addData(
                         "Position",
                         "Left: %d  Right: %d",
                         leftMotor.getCurrentPosition(),
-                        rightMotor.getCurrentPosition()
-                );
-
+                        rightMotor.getCurrentPosition());
                 telemetry.addData(
                         "Time",
                         "%.1f / %.1f seconds",
                         runtime.seconds(),
-                        timeoutSeconds
-                );
-
+                        timeoutSeconds);
                 telemetry.update();
                 opMode.idle();
             }
@@ -225,6 +215,14 @@ public class BasicDrivetrain extends Drivetrain{
         switch (motor) {
             case LEFT_MOTOR: return leftPower;
             case RIGHT_MOTOR: return rightPower;
+            default: return 0.0;
+        }
+    }
+
+    public double getWantedPower(Motor motor) {
+        switch (motor) {
+            case LEFT_MOTOR: return wantedLeftPower;
+            case RIGHT_MOTOR: return wantedRightPower;
             default: return 0.0;
         }
     }

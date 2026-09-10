@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.mechanisms.BasicDrivetrain;
 import org.firstinspires.ftc.teamcode.mechanisms.BasicIntake;
 import org.firstinspires.ftc.teamcode.mechanisms.MecanumDrivetrain;
 import org.firstinspires.ftc.teamcode.utilities.RobotMath;
@@ -19,6 +20,12 @@ public class MecanumTeleOp extends LinearOpMode {
     private static final double DEAD_ZONE = 0.06;
     private static final double SPEED_UP_RATE = 2.75;
     private static final double SLOW_DOWN_RATE = 5.50;
+    private double speedLimit;
+
+    private final MecanumDrivetrain.Motor frontLeftMotor = MecanumDrivetrain.Motor.FRONT_LEFT_MOTOR;
+    private final MecanumDrivetrain.Motor frontRightMotor = MecanumDrivetrain.Motor.FRONT_RIGHT_MOTOR;
+    private final MecanumDrivetrain.Motor backLeftMotor = MecanumDrivetrain.Motor.BACK_LEFT_MOTOR;
+    private final MecanumDrivetrain.Motor backRightMotor = MecanumDrivetrain.Motor.BACK_RIGHT_MOTOR;
 
     private final MecanumDrivetrain drivetrain = new MecanumDrivetrain();
     private final BasicIntake intake = new BasicIntake();
@@ -47,7 +54,7 @@ public class MecanumTeleOp extends LinearOpMode {
 
         try {
             while (opModeIsActive()) {
-                // Keep the loop time from getting too high if the code pauses.
+                // Maximum loopTime is 0.1 seconds to filter out outliers
                 double loopTime = Math.min(loopTimer.seconds(), 0.10);
                 loopTimer.reset();
 
@@ -56,16 +63,21 @@ public class MecanumTeleOp extends LinearOpMode {
                 double strafe = RobotMath.fixJoystick(gamepad1.left_stick_x, DEAD_ZONE);
                 double turn = RobotMath.fixJoystick(gamepad1.right_stick_x, DEAD_ZONE);
 
+                // Squaring makes small movements easier to control
+                forward = Math.copySign(forward * forward, forward);
+                strafe = Math.copySign(strafe * strafe, strafe);
+                turn = Math.copySign(turn * turn, turn);
+
                 double slowAmount = Range.clip(gamepad1.left_trigger, 0.0, 1.0);
                 double boostAmount = Range.clip(gamepad1.right_trigger, 0.0, 1.0);
 
-                double speedLimit;
                 String driveMode;
 
                 if (slowAmount > 0.05) {
                     speedLimit = RobotMath.interpolate(NORMAL_SPEED, SLOW_SPEED, slowAmount);
                     driveMode = "SLOW";
-                } else {
+                }
+                else {
                     speedLimit = RobotMath.interpolate(NORMAL_SPEED, FAST_SPEED, boostAmount);
                     driveMode = boostAmount > 0.05 ? "BOOST" : "NORMAL";
                 }
@@ -87,13 +99,47 @@ public class MecanumTeleOp extends LinearOpMode {
 
                 telemetry.addData("Drive Mode", driveMode);
                 telemetry.addData("Speed Limit", "%.0f%%", speedLimit * 100.0);
+                telemetry.addData("Right Trigger", "%.0f%%", boostAmount * 100.0);
+                telemetry.addData("Left trigger", "%.0f%%", slowAmount * 100.0);
                 telemetry.addData(
                         "Drive Command",
                         "Forward: %.2f  Strafe: %.2f  Turn: %.2f",
                         forward,
                         strafe,
-                        turn
-                );
+                        turn);
+                telemetry.addData("Front Powers",
+                        "FL: %.2f    FR: %.2f",
+                        drivetrain.getPower(frontLeftMotor),
+                        drivetrain.getPower(frontRightMotor));
+                telemetry.addLine("");
+                telemetry.addData("Back Powers",
+                        " BL: %.2f    BR: %.2f", // DO NOT REMOVE THE SPACE IN FRONT OF BL, AS IT IS INTENDED TO ALIGN NUMBERS.
+                        drivetrain.getPower(backLeftMotor),
+                        drivetrain.getPower(backRightMotor));
+                telemetry.addLine("--------------------------------");
+
+                telemetry.addData("Wanted Front Powers",
+                        "FL: %.2f    FR: %.2f",
+                        drivetrain.getWantedPower(frontLeftMotor),
+                        drivetrain.getWantedPower(frontRightMotor));
+                telemetry.addLine("");
+                telemetry.addData("Wanted Back Powers",
+                        " BL: %.2f    BR: %.2f", // DO NOT REMOVE THE SPACE IN FRONT OF BL, AS IT IS INTENDED TO ALIGN NUMBERS.
+                        drivetrain.getWantedPower(backLeftMotor),
+                        drivetrain.getWantedPower(backRightMotor));
+                telemetry.addLine("--------------------------------");
+
+                telemetry.addData("Front Ticks",
+                        "FL: %.2f    FR: %.2f",
+                        drivetrain.getCurrentPosition(frontLeftMotor),
+                        drivetrain.getCurrentPosition(frontRightMotor));
+                telemetry.addLine("");
+                telemetry.addData("Back Powers",
+                        " BL: %.2f    BR: %.2f", // DO NOT REMOVE THE SPACE IN FRONT OF BL, AS IT IS INTENDED TO ALIGN NUMBERS.
+                        drivetrain.getCurrentPosition(backLeftMotor),
+                        drivetrain.getCurrentPosition(backRightMotor));
+                telemetry.addLine("--------------------------------");
+
                 telemetry.addData("Intake Speed", intake.getSpeed());
                 telemetry.update();
                 idle();
