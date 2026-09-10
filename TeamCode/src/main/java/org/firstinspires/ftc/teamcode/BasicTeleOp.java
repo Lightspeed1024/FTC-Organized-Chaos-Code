@@ -23,8 +23,8 @@ public class BasicTeleOp extends LinearOpMode {
     private static final double MOVING_TURN_SPEED = 0.55;
     private static final double SPEED_UP_RATE = 2.75;
     private static final double SLOW_DOWN_RATE = 5.50;
-    public double speedLimit;
-    public double turnLimit;
+    private double speedLimit;
+    private double turnLimit;
 
     private final BasicDrivetrain.Motor leftMotor = BasicDrivetrain.Motor.LEFT_MOTOR;
     private final BasicDrivetrain.Motor rightMotor = BasicDrivetrain.Motor.RIGHT_MOTOR;
@@ -80,9 +80,10 @@ public class BasicTeleOp extends LinearOpMode {
                 }
 
                 // Turning is less sensitive while the robot is moving quickly.
+                drive *= speedLimit;
+
                 turnLimit = RobotMath.interpolate(TURN_SPEED, MOVING_TURN_SPEED, Math.abs(drive));
                 turn *= turnLimit;
-                drive *= speedLimit;
 
                 drivetrain.drive(drive, turn, loopTime, true);
 

@@ -20,7 +20,10 @@ public class MecanumTeleOp extends LinearOpMode {
     private static final double DEAD_ZONE = 0.06;
     private static final double SPEED_UP_RATE = 2.75;
     private static final double SLOW_DOWN_RATE = 5.50;
+    private static final double TURN_SPEED = 0.80;
+    private static final double MOVING_TURN_SPEED = 0.55;
     private double speedLimit;
+    private double turnLimit;
 
     private final MecanumDrivetrain.Motor frontLeftMotor = MecanumDrivetrain.Motor.FRONT_LEFT_MOTOR;
     private final MecanumDrivetrain.Motor frontRightMotor = MecanumDrivetrain.Motor.FRONT_RIGHT_MOTOR;
@@ -84,6 +87,8 @@ public class MecanumTeleOp extends LinearOpMode {
 
                 forward *= speedLimit;
                 strafe *= speedLimit;
+
+                turnLimit = RobotMath.interpolate(TURN_SPEED, MOVING_TURN_SPEED, Math.abs(forward));
                 turn *= speedLimit;
 
                 // Send the stick values to the drivetrain. True turns smoothing on.
