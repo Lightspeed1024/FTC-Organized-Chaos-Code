@@ -27,7 +27,7 @@ We have strict rules to keep our code clean, stable, and easy to read. Before yo
 
 👉 **[READ THE CONTRIBUTING GUIDELINES (CONTRIBUTING.md)](.github/CONTRIBUTING.md)**
 
-If you are running this project on Android Studio, make sure to NEVER upgrade or update anything (like the Gradle or Daemon). Doing so will break the entire project because FTC relies on a specific version of the Java SDK and will not work otherwise.
+If you are running this project on Android Studio, make sure to NEVER upgrade or update anything about the Gradle (like migrating to Gradle Daemon Toolchain or Upgrading the Android Gradle plugin). Doing so will break the entire project because FTC relies on a specific version of the Java SDK and will not work otherwise. However, you can still update your Android Studio.
 
 ## Sample OpModes
 
