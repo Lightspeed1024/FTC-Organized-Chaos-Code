@@ -2,13 +2,11 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.mechanisms.BasicDrivetrain;
 
 @Autonomous
-public class FastLaneAutonomous extends LinearOpMode {
+public class LoopAroundFieldAutonomous extends LinearOpMode {
     BasicDrivetrain drivetrain = new BasicDrivetrain();
     private final BasicDrivetrain.Motor leftMotor = BasicDrivetrain.Motor.LEFT_MOTOR;
     private final BasicDrivetrain.Motor rightMotor = BasicDrivetrain.Motor.RIGHT_MOTOR;
@@ -32,9 +30,11 @@ public class FastLaneAutonomous extends LinearOpMode {
 
         // Step through each leg of the path,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
-        drivetrain.driveInches(DRIVE_SPEED, 24, 24, 5.0);
-        drivetrain.turnDegrees(TURN_SPEED, -90, 4.0);
-        drivetrain.driveInches(DRIVE_SPEED, 18, 18, 4.0);
+        for (int i = 0; i < 4; i++) {
+            drivetrain.driveInches(DRIVE_SPEED, 132, 132, 10.0);
+            drivetrain.turnDegrees(TURN_SPEED, -90, 4.0);
+        }
+//        drivetrain.driveInches(DRIVE_SPEED, 18, 18, 4.0);
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
