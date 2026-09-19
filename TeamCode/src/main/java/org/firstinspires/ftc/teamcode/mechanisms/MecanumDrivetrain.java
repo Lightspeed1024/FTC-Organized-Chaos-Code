@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -16,6 +17,16 @@ public class MecanumDrivetrain extends Drivetrain{
     private Telemetry telemetry;
     private LinearOpMode opMode;
     public enum Motor {FRONT_LEFT_MOTOR, FRONT_RIGHT_MOTOR, BACK_LEFT_MOTOR, BACK_RIGHT_MOTOR}
+
+    private static final double COUNTS_PER_MOTOR_REV = 560.0;
+    private static final double DRIVE_GEAR_REDUCTION = 1.0;
+    private static final double WHEEL_DIAMETER_INCHES = 3.54331;
+    private static final double TRACK_WIDTH_INCHES = 16.0;
+    private static final double TURN_CIRCUMFERENCE = Math.PI * TRACK_WIDTH_INCHES;
+    private static final double COUNTS_PER_INCH =
+            (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION)
+                    / (WHEEL_DIAMETER_INCHES * Math.PI);
+    private ElapsedTime runtime = new ElapsedTime();
 
     private double frontLeftPower = 0.0;
     private double backLeftPower = 0.0;
@@ -69,7 +80,7 @@ public class MecanumDrivetrain extends Drivetrain{
      * @param strafe The power to move sideways, typically the x-axis of the left stick.
      * @param turn The power to rotate, typically the x-axis of the right stick.
      */
-    public void drive(double forward, double strafe, double turn, double loopTime, boolean smooth) {
+    public void driveTeleOp(double forward, double strafe, double turn, double loopTime, boolean smooth) {
         wantedFrontLeftPower = forward + strafe + turn;
         wantedBackLeftPower = forward - strafe + turn;
         wantedFrontRightPower = forward - strafe - turn;
@@ -106,6 +117,88 @@ public class MecanumDrivetrain extends Drivetrain{
         backRightMotor.setPower(backRightPower);
     }
 
+    // TODO: add built in turning to this
+    public void driveInches(double speed, double forward, double strafe, double timeoutSeconds) {
+        if (!opMode.opModeIsActive()) {
+            return;
+        }
+        double drivePower = Range.clip(Math.abs(speed), 0.0, 1.0);
+
+        if (drivePower == 0.0 || timeoutSeconds <= 0.0) {
+            stop();
+            return;
+        }
+
+        int frontLeftTarget = frontLeftMotor.getCurrentPosition() + inchesToTicks(forward) + inchesToTicks(strafe);
+        int frontRightTarget = frontRightMotor.getCurrentPosition() + inchesToTicks(forward) - inchesToTicks(strafe);
+        int backLeftTarget = backLeftMotor.getCurrentPosition() + inchesToTicks(forward) - inchesToTicks(strafe);
+        int backRightTarget = backRightMotor.getCurrentPosition() + inchesToTicks(forward) + inchesToTicks(strafe);
+
+        frontLeftMotor.setTargetPosition(frontLeftTarget);
+        frontRightMotor.setTargetPosition(frontRightTarget);
+        backLeftMotor.setTargetPosition(backLeftTarget);
+        backRightMotor.setTargetPosition(backRightTarget);
+
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        runtime.reset();
+
+        try {
+            frontLeftMotor.setPower(drivePower);
+            frontRightMotor.setPower(drivePower);
+            backLeftMotor.setPower(drivePower);
+            backRightMotor.setPower(drivePower);
+
+            frontLeftPower = drivePower;
+            frontRightPower = drivePower;
+            backLeftPower = drivePower;
+            backRightPower = drivePower;
+
+            // Wait until both motors finish, time runs out, or the OpMode stops.
+            while (opMode.opModeIsActive()
+                    && runtime.seconds() < timeoutSeconds
+                    // TODO: change this so that instead of only one motor finishing it is 2 or 3 of them is enough
+                    && (frontLeftMotor.isBusy() && frontRightMotor.isBusy() && backLeftMotor.isBusy() && backRightMotor.isBusy())) {
+
+                telemetry.addData("Front Powers",
+                        "FL: %.2f    FR: %.2f",
+                        frontLeftPower,
+                        frontRightPower);
+                telemetry.addLine("");
+                telemetry.addData("Back Powers",
+                        " BL: %.2f    BR: %.2f", // DO NOT REMOVE THE SPACE IN FRONT OF BL, AS IT IS INTENDED TO ALIGN NUMBERS.
+                        backLeftPower,
+                        backRightPower);
+                telemetry.addLine("--------------------------------");
+                telemetry.addData("Front Targets",
+                        "FL: %.2f    FR: %.2f",
+                        frontLeftTarget,
+                        frontRightTarget);
+                telemetry.addData(
+                        "Back Targets",
+                        " BL: %.2f    BR: %.2f", // DO NOT REMOVE THE SPACE IN FRONT OF BL, AS IT IS INTENDED TO ALIGN NUMBERS.
+                        backLeftTarget,
+                        backRightTarget);
+                telemetry.addData(
+                        "Time",
+                        "%.1f / %.1f seconds",
+                        runtime.seconds(),
+                        timeoutSeconds);
+                telemetry.update();
+                opMode.idle();
+            }
+        } finally {
+            stop();
+            backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+    }
+
     /**
      * A field-oriented version of driving, where forwards and sideways movement is relative to the driver's POV.
      * @param forward The power at which to drive forward, typically given by the left stick y-axis on the gamepad.
@@ -121,7 +214,7 @@ public class MecanumDrivetrain extends Drivetrain{
         double newForward = speed * Math.sin(robotTheta);
         double newStrafe = speed * Math.cos(robotTheta);
 
-        this.drive(newForward, newStrafe, turn, loopTime, smooth);
+        this.driveTeleOp(newForward, newStrafe, turn, loopTime, smooth);
     }
 
     public double getCurrentPosition(Motor motor) {
@@ -152,5 +245,23 @@ public class MecanumDrivetrain extends Drivetrain{
             case BACK_RIGHT_MOTOR: return wantedBackRightPower;
             default: return 0;
         }
+    }
+
+    public void stop() {
+        frontLeftPower = 0.0;
+        frontRightPower = 0.0;
+        backLeftPower = 0.0;
+        backRightPower = 0.0;
+        frontLeftMotor.setPower(0.0);
+        frontRightMotor.setPower(0.0);
+        backLeftMotor.setPower(0.0);
+        backRightMotor.setPower(0.0);
+    }
+
+    /**
+     * Converts a distance in inches into motor encoder ticks.
+     */
+    private int inchesToTicks(double inches) {
+        return (int) Math.round(inches * COUNTS_PER_INCH);
     }
 }
