@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.mechanisms.BasicDrivetrain;
 import org.firstinspires.ftc.teamcode.mechanisms.BasicIntake;
 import org.firstinspires.ftc.teamcode.mechanisms.MecanumDrivetrain;
 import org.firstinspires.ftc.teamcode.utilities.RobotMath;
@@ -49,7 +48,7 @@ public class MecanumTeleOp extends LinearOpMode {
         waitForStart();
 
         if (isStopRequested()) {
-            drivetrain.drive(0.0, 0.0, 0.0, 0.0, false);
+            drivetrain.driveTeleOp(0.0, 0.0, 0.0, 0.0, false);
             return;
         }
 
@@ -92,7 +91,7 @@ public class MecanumTeleOp extends LinearOpMode {
                 turn *= speedLimit;
 
                 // Send the stick values to the drivetrain. True turns smoothing on.
-                drivetrain.drive(forward, strafe, turn, loopTime, true);
+                drivetrain.driveTeleOp(forward, strafe, turn, loopTime, true);
 
                 if (gamepad2.right_trigger > 0.05) {
                     intake.spinIntake(gamepad2.right_trigger);
@@ -151,7 +150,7 @@ public class MecanumTeleOp extends LinearOpMode {
             }
         } finally {
             intake.spinIntake(0.0);
-            drivetrain.drive(0.0, 0.0, 0.0, 0.0, false);
+            drivetrain.driveTeleOp(0.0, 0.0, 0.0, 0.0, false);
         }
     }
 }

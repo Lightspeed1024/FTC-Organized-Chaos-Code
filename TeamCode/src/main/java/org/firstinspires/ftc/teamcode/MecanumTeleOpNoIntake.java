@@ -47,7 +47,7 @@ public class MecanumTeleOpNoIntake extends LinearOpMode {
         waitForStart();
 
         if (isStopRequested()) {
-            drivetrain.drive(0.0, 0.0, 0.0, 0.0, false);
+            drivetrain.driveTeleOp(0.0, 0.0, 0.0, 0.0, false);
             return;
         }
 
@@ -149,7 +149,7 @@ public class MecanumTeleOpNoIntake extends LinearOpMode {
             }
         } finally {
 //            intake.spinIntake(0.0);
-            drivetrain.drive(0.0, 0.0, 0.0, 0.0, false);
+            drivetrain.driveTeleOp(0.0, 0.0, 0.0, 0.0, false);
         }
     }
 }
