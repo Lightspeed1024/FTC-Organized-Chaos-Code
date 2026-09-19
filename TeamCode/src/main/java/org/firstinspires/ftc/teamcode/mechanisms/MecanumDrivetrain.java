@@ -98,23 +98,22 @@ public class MecanumDrivetrain extends Drivetrain{
         wantedFrontRightPower /= highestPower;
         wantedBackRightPower /= highestPower;
 
+        double fl, bl, fr, br;
+
         if (smooth) {
-            frontLeftPower = smoothPower(frontLeftPower, wantedFrontLeftPower, slowDownRate, speedUpRate, loopTime);
-            backLeftPower = smoothPower(backLeftPower, wantedBackLeftPower, slowDownRate, speedUpRate, loopTime);
-            frontRightPower = smoothPower(frontRightPower, wantedFrontRightPower, slowDownRate, speedUpRate, loopTime);
-            backRightPower = smoothPower(backRightPower, wantedBackRightPower, slowDownRate, speedUpRate, loopTime);
+            fl = smoothPower(frontLeftPower, wantedFrontLeftPower, slowDownRate, speedUpRate, loopTime);
+            bl = smoothPower(backLeftPower, wantedBackLeftPower, slowDownRate, speedUpRate, loopTime);
+            fr = smoothPower(frontRightPower, wantedFrontRightPower, slowDownRate, speedUpRate, loopTime);
+            br = smoothPower(backRightPower, wantedBackRightPower, slowDownRate, speedUpRate, loopTime);
         }
         else {
-            frontLeftPower = wantedFrontLeftPower;
-            backLeftPower = wantedBackLeftPower;
-            frontRightPower = wantedFrontRightPower;
-            backRightPower = wantedBackRightPower;
+            fl = wantedFrontLeftPower;
+            bl = wantedBackLeftPower;
+            fr = wantedFrontRightPower;
+            br = wantedBackRightPower;
         }
 
-        frontLeftMotor.setPower(frontLeftPower);
-        backLeftMotor.setPower(backLeftPower);
-        frontRightMotor.setPower(frontRightPower);
-        backRightMotor.setPower(backRightPower);
+        setMotorPowers(fl, bl, fr, br);
     }
 
     // TODO: add built in turning to this
@@ -147,15 +146,7 @@ public class MecanumDrivetrain extends Drivetrain{
         runtime.reset();
 
         try {
-            frontLeftMotor.setPower(drivePower);
-            frontRightMotor.setPower(drivePower);
-            backLeftMotor.setPower(drivePower);
-            backRightMotor.setPower(drivePower);
-
-            frontLeftPower = drivePower;
-            frontRightPower = drivePower;
-            backLeftPower = drivePower;
-            backRightPower = drivePower;
+            setMotorPowers(drivePower, drivePower, drivePower, drivePower);
 
             // Wait until both motors finish, time runs out, or the OpMode stops.
             while (opMode.opModeIsActive()
@@ -197,6 +188,18 @@ public class MecanumDrivetrain extends Drivetrain{
             frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
+    }
+
+    private void setMotorPowers(double fl, double bl, double fr, double br) {
+        frontLeftMotor.setPower(fl);
+        backLeftMotor.setPower(bl);
+        frontRightMotor.setPower(fr);
+        backRightMotor.setPower(br);
+
+        frontLeftPower = fl;
+        backLeftPower = bl;
+        frontRightPower = fr;
+        backRightPower = br;
     }
 
     /**
@@ -248,14 +251,7 @@ public class MecanumDrivetrain extends Drivetrain{
     }
 
     public void stop() {
-        frontLeftPower = 0.0;
-        frontRightPower = 0.0;
-        backLeftPower = 0.0;
-        backRightPower = 0.0;
-        frontLeftMotor.setPower(0.0);
-        frontRightMotor.setPower(0.0);
-        backLeftMotor.setPower(0.0);
-        backRightMotor.setPower(0.0);
+        setMotorPowers(0, 0, 0, 0);
     }
 
     /**

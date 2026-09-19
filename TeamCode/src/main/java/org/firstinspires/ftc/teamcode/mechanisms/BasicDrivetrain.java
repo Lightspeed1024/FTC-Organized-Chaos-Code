@@ -83,12 +83,16 @@ public class BasicDrivetrain extends Drivetrain{
             wantedRightPower /= biggestPower;
         }
 
+        double left, right;
         if (smooth) {
-            setSmoothDrivePower(wantedLeftPower, wantedRightPower, loopTime);
+            left = smoothPower(leftPower, wantedLeftPower, slowDownRate, speedUpRate, loopTime);
+            right = smoothPower(rightPower, wantedRightPower, slowDownRate, speedUpRate, loopTime);
+        } else {
+            left = wantedLeftPower;
+            right = wantedRightPower;
         }
-        else {
-            setDrivePower(wantedLeftPower, wantedRightPower);
-        }
+        
+        setDrivePower(left, right);
     }
 
     /**
@@ -186,10 +190,7 @@ public class BasicDrivetrain extends Drivetrain{
     }
 
     public void stop() {
-        leftPower = 0.0;
-        rightPower = 0.0;
-        leftMotor.setPower(0.0);
-        rightMotor.setPower(0.0);
+        setDrivePower(0, 0);
     }
 
     public void setPower(Motor motor, double power) {
