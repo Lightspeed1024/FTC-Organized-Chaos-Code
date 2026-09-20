@@ -117,8 +117,15 @@ public class MecanumDrivetrain extends Drivetrain{
         setMotorPowers(fl, bl, fr, br);
     }
 
-    // TODO: add built in turning to this
-    public void driveInches(double speed, double forward, double strafe, double timeoutSeconds) {
+    /**
+     * An autonomous function to drive the robot a certain distance forward, sideways, and rotating.
+     * @param speed The speed to drive at.
+     * @param forward The distance in inches to drive forward.
+     * @param strafe The distance in inches to move sideways: positive is right, negative is left.
+     * @param turnDegrees The degrees to turn the robot: positive is clockwise, negative is counter-clockwise.
+     * @param timeoutSeconds The time in seconds after which to stop movement, even if the action is unfinished.
+     */
+    public void driveInches(double speed, double forward, double strafe, double turnDegrees, double timeoutSeconds) {
         if (!opMode.opModeIsActive()) {
             return;
         }
@@ -130,13 +137,14 @@ public class MecanumDrivetrain extends Drivetrain{
             return;
         }
 
-        int frontLeftTarget = frontLeftMotor.getCurrentPosition()
-                + inchesToTicks(forward)
-                + inchesToTicks(strafe)
-                ;
-        int frontRightTarget = frontRightMotor.getCurrentPosition() + inchesToTicks(forward) - inchesToTicks(strafe);
-        int backLeftTarget = backLeftMotor.getCurrentPosition() + inchesToTicks(forward) - inchesToTicks(strafe);
-        int backRightTarget = backRightMotor.getCurrentPosition() + inchesToTicks(forward) + inchesToTicks(strafe);
+        int forwardTicks = inchesToTicks(forward);
+        int strafeTicks = inchesToTicks(strafe);
+        int turnTicks = inchesToTicks(turnDegrees);
+
+        int frontLeftTarget = frontLeftMotor.getCurrentPosition() + forwardTicks + strafeTicks + turnTicks;
+        int frontRightTarget = frontRightMotor.getCurrentPosition() + forwardTicks - strafeTicks - turnTicks;
+        int backLeftTarget = backLeftMotor.getCurrentPosition() + forwardTicks - strafeTicks + turnTicks;
+        int backRightTarget = backRightMotor.getCurrentPosition() + forwardTicks + strafeTicks - turnTicks;
 
         frontLeftMotor.setTargetPosition(frontLeftTarget);
         frontRightMotor.setTargetPosition(frontRightTarget);

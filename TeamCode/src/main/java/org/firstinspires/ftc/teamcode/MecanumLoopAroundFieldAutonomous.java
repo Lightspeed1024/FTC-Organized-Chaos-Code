@@ -27,10 +27,10 @@ public class MecanumLoopAroundFieldAutonomous extends LinearOpMode {
 
         // Step through each leg of the path,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
-        drivetrain.driveInches(DRIVE_SPEED, 132.0, 0.0, 10.0);
-        drivetrain.driveInches(DRIVE_SPEED, 0, -132, 10.0);
-        drivetrain.driveInches(DRIVE_SPEED, -132.0, 0.0, 10.0);
-        drivetrain.driveInches(DRIVE_SPEED, 0.0, 132, 10.0);
+        drivetrain.driveInches(DRIVE_SPEED, 132, 0, 0, 10);
+        drivetrain.driveInches(DRIVE_SPEED, 0, -132, 0, 10);
+        drivetrain.driveInches(DRIVE_SPEED, -132, 0, 0, 10);
+        drivetrain.driveInches(DRIVE_SPEED, 0, 132, 0, 10);
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
