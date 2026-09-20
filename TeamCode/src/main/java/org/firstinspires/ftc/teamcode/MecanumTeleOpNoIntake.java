@@ -18,8 +18,8 @@ public class MecanumTeleOpNoIntake extends LinearOpMode {
     private static final double DEAD_ZONE = 0.06;
     private static final double SPEED_UP_RATE = 2.75;
     private static final double SLOW_DOWN_RATE = 5.50;
-    private static final double TURN_SPEED = 0.80;
-    private static final double MOVING_TURN_SPEED = 0.55;
+    private static final double TURN_SPEED = 0.9;
+    private static final double MOVING_TURN_SPEED = 0.7;
     private double speedLimit;
     private double turnLimit;
 
@@ -90,7 +90,7 @@ public class MecanumTeleOpNoIntake extends LinearOpMode {
                 turn *= speedLimit;
 
                 // Send the stick values to the drivetrain. True turns smoothing on.
-                drivetrain.driveFieldRelative(forward, strafe, turn, loopTime, true);
+                drivetrain.driveTeleOp(forward, strafe, turn, loopTime, true);
 
                 if (gamepad2.right_trigger > 0.05) {
 //                    intake.spinIntake(gamepad2.right_trigger);
@@ -142,7 +142,7 @@ public class MecanumTeleOpNoIntake extends LinearOpMode {
                         drivetrain.getCurrentPosition(backLeftMotor),
                         drivetrain.getCurrentPosition(backRightMotor));
                 telemetry.addLine("--------------------------------");
-
+//                telemetry.addData("Heading", )
 //                telemetry.addData("Intake Speed", intake.getSpeed());
                 telemetry.update();
                 idle();

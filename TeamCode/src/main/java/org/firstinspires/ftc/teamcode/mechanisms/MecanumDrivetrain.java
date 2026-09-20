@@ -47,6 +47,7 @@ public class MecanumDrivetrain extends Drivetrain{
      * @param hwMap Pass in "hardwareMap". This will give the class access to the motor configurations on the Control Hub.
      */
     public void init(LinearOpMode opMode, HardwareMap hwMap, double slowDownRate, double speedUpRate) {
+        this.opMode = opMode;
         this.telemetry = opMode.telemetry;
         this.slowDownRate = slowDownRate;
         this.speedUpRate = speedUpRate;
@@ -121,6 +122,7 @@ public class MecanumDrivetrain extends Drivetrain{
         if (!opMode.opModeIsActive()) {
             return;
         }
+
         double drivePower = Range.clip(Math.abs(speed), 0.0, 1.0);
 
         if (drivePower == 0.0 || timeoutSeconds <= 0.0) {
@@ -128,7 +130,10 @@ public class MecanumDrivetrain extends Drivetrain{
             return;
         }
 
-        int frontLeftTarget = frontLeftMotor.getCurrentPosition() + inchesToTicks(forward) + inchesToTicks(strafe);
+        int frontLeftTarget = frontLeftMotor.getCurrentPosition()
+                + inchesToTicks(forward)
+                + inchesToTicks(strafe)
+                ;
         int frontRightTarget = frontRightMotor.getCurrentPosition() + inchesToTicks(forward) - inchesToTicks(strafe);
         int backLeftTarget = backLeftMotor.getCurrentPosition() + inchesToTicks(forward) - inchesToTicks(strafe);
         int backRightTarget = backRightMotor.getCurrentPosition() + inchesToTicks(forward) + inchesToTicks(strafe);
@@ -165,12 +170,12 @@ public class MecanumDrivetrain extends Drivetrain{
                         backRightPower);
                 telemetry.addLine("--------------------------------");
                 telemetry.addData("Front Targets",
-                        "FL: %.2f    FR: %.2f",
+                        "FL: %d    FR: %d",
                         frontLeftTarget,
                         frontRightTarget);
                 telemetry.addData(
                         "Back Targets",
-                        " BL: %.2f    BR: %.2f", // DO NOT REMOVE THE SPACE IN FRONT OF BL, AS IT IS INTENDED TO ALIGN NUMBERS.
+                        " BL: %d    BR: %d", // DO NOT REMOVE THE SPACE IN FRONT OF BL, AS IT IS INTENDED TO ALIGN NUMBERS.
                         backLeftTarget,
                         backRightTarget);
                 telemetry.addData(
@@ -218,6 +223,10 @@ public class MecanumDrivetrain extends Drivetrain{
         double newStrafe = speed * Math.cos(robotTheta);
 
         this.driveTeleOp(newForward, newStrafe, turn, loopTime, smooth);
+    }
+
+    public double getYaw() {
+        return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
     }
 
     public double getCurrentPosition(Motor motor) {
