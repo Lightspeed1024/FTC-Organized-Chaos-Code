@@ -22,11 +22,13 @@ public class MecanumDrivetrain extends Drivetrain{
     private static final double DRIVE_GEAR_REDUCTION = 1.0;
     private static final double WHEEL_DIAMETER_INCHES = 3.54331;
     private static final double TRACK_WIDTH_INCHES = 16.0;
+    // The robot previously turned about 45 degrees when commanded to turn 90.
+    private static final double TURN_DISTANCE_MULTIPLIER = 2.0;
     private static final double TURN_CIRCUMFERENCE = Math.PI * TRACK_WIDTH_INCHES;
     private static final double COUNTS_PER_INCH =
             (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION)
                     / (WHEEL_DIAMETER_INCHES * Math.PI);
-    private ElapsedTime runtime = new ElapsedTime();
+    private final ElapsedTime runtime = new ElapsedTime();
 
     private double frontLeftPower = 0.0;
     private double backLeftPower = 0.0;
@@ -46,6 +48,10 @@ public class MecanumDrivetrain extends Drivetrain{
      * @param opMode Pass in "this". It will provide the OpMode functionalities to this class.
      * @param hwMap Pass in "hardwareMap". This will give the class access to the motor configurations on the Control Hub.
      */
+    public void init(LinearOpMode opMode, HardwareMap hwMap) {
+        init(opMode, hwMap, 5.50, 2.75);
+    }
+
     public void init(LinearOpMode opMode, HardwareMap hwMap, double slowDownRate, double speedUpRate) {
         this.opMode = opMode;
         this.telemetry = opMode.telemetry;
@@ -62,10 +68,12 @@ public class MecanumDrivetrain extends Drivetrain{
         frontRightMotor.setDirection(DcMotor.Direction.FORWARD);
         backRightMotor.setDirection(DcMotor.Direction.FORWARD);
 
-        frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        resetEncoders();
 
         imu = hwMap.get(IMU.class, "imu");
         RevHubOrientationOnRobot RevOrientation = new RevHubOrientationOnRobot(
@@ -139,7 +147,10 @@ public class MecanumDrivetrain extends Drivetrain{
 
         int forwardTicks = inchesToTicks(forward);
         int strafeTicks = inchesToTicks(strafe);
-        int turnTicks = inchesToTicks(turnDegrees);
+        double turnInches = (turnDegrees / 360.0)
+                * TURN_CIRCUMFERENCE
+                * TURN_DISTANCE_MULTIPLIER;
+        int turnTicks = inchesToTicks(turnInches);
 
         int frontLeftTarget = frontLeftMotor.getCurrentPosition() + forwardTicks + strafeTicks + turnTicks;
         int frontRightTarget = frontRightMotor.getCurrentPosition() + forwardTicks - strafeTicks - turnTicks;
@@ -161,11 +172,10 @@ public class MecanumDrivetrain extends Drivetrain{
         try {
             setMotorPowers(drivePower, drivePower, drivePower, drivePower);
 
-            // Wait until both motors finish, time runs out, or the OpMode stops.
+            // Wait until all motors finish, time runs out, or the OpMode stops.
             while (opMode.opModeIsActive()
                     && runtime.seconds() < timeoutSeconds
-                    // TODO: change this so that instead of only one motor finishing it is 2 or 3 of them is enough
-                    && (frontLeftMotor.isBusy() && frontRightMotor.isBusy() && backLeftMotor.isBusy() && backRightMotor.isBusy())) {
+                    && isDriving()) {
 
                 telemetry.addData("Front Powers",
                         "FL: %.2f    FR: %.2f",
@@ -201,6 +211,59 @@ public class MecanumDrivetrain extends Drivetrain{
             frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
+    }
+
+    /**
+     * Drives the left and right sides independently using encoder distances.
+     * Positive distances move forward and negative distances move backward.
+     */
+    public void driveInches(
+            double speed,
+            double leftInches,
+            double rightInches,
+            double timeoutSeconds
+    ) {
+        double forwardInches = (leftInches + rightInches) / 2.0;
+        double turnInches = (leftInches - rightInches) / 2.0;
+        double turnDegrees = (turnInches / (TURN_CIRCUMFERENCE * TURN_DISTANCE_MULTIPLIER)) * 360.0;
+
+        driveInches(speed, forwardInches, 0.0, turnDegrees, timeoutSeconds);
+    }
+
+    /**
+     * Strafes using encoder distance. Positive inches move right;
+     * negative inches move left.
+     */
+    public void strafeInches(double speed, double inches, double timeoutSeconds) {
+        driveInches(speed, 0.0, inches, 0.0, timeoutSeconds);
+    }
+
+    /**
+     * Turns using the calibrated encoder distance. Positive degrees turn
+     * clockwise; negative degrees turn counterclockwise.
+     */
+    public void turnDegrees(double speed, double degrees, double timeoutSeconds) {
+        driveInches(speed, 0.0, 0.0, degrees, timeoutSeconds);
+    }
+
+    public boolean isDriving() {
+        return frontLeftMotor.isBusy()
+                || frontRightMotor.isBusy()
+                || backLeftMotor.isBusy()
+                || backRightMotor.isBusy();
+    }
+
+    public void resetEncoders() {
+        stop();
+        setAllModes(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        setAllModes(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    private void setAllModes(DcMotor.RunMode mode) {
+        frontLeftMotor.setMode(mode);
+        frontRightMotor.setMode(mode);
+        backLeftMotor.setMode(mode);
+        backRightMotor.setMode(mode);
     }
 
     private void setMotorPowers(double fl, double bl, double fr, double br) {
