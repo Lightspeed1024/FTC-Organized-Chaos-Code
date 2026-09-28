@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class ColorSensor {
 
-    // Explicitly typed color choices to prevent string typos
     public enum DetectedColor {
         RED,
         YELLOW,
@@ -20,9 +19,9 @@ public class ColorSensor {
         colorSensor = hwMap.get(com.qualcomm.robotcore.hardware.ColorSensor.class, "colorSensor");
     }
 
-    public int getRed() { return colorSensor.red(); }
-    public int getGreen() { return colorSensor.green(); }
-    public int getBlue() { return colorSensor.blue(); }
+    public int getRGBRed() { return colorSensor.red(); }
+    public int getRGBGreen() { return colorSensor.green(); }
+    public int getRGBBlue() { return colorSensor.blue(); }
 
     /**
      * Converts raw RGB values into Android's HSV float array.
@@ -30,12 +29,21 @@ public class ColorSensor {
      */
     public float[] getHSV() {
         float[] hsv = new float[3];
-        Color.RGBToHSV(getRed(), getGreen(), getBlue(), hsv);
+        Color.RGBToHSV(getRGBRed(), getRGBGreen(), getRGBBlue(), hsv);
         return hsv;
     }
 
     /**
-     * Determines the strongest color using reliable HSV threshold angles.
+     * Returns the Hue reading of the color sensor HSV.
+     * @return The HSV reading as a float.
+     */
+    public float getHue() {
+        return getHSV()[0];
+    }
+
+    /**
+     * Determines the strongest color using Hue readings from the HSV threshold angles.
+     * @return The name of the color the sensor detects in the form of an enum DetectedColor.
      */
     public DetectedColor getDetectedColor() {
         float[] hsv = getHSV();
