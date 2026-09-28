@@ -34,7 +34,7 @@ public class BasicDrivetrain extends Drivetrain{
     private double wantedRightPower;
 
     /**
-     * A replacement for the constructor of this class (making a custom method allows more functionalities than constructor).
+     * The initializer for the basic drivetrain.
      * It initializes all the motors and configures their settings.
      * NEEDS TO BE CALLED EVERY TIME THIS CLASS IS INSTANTIATED.
      * @param opMode Pass in "this" in the OpMode. It will give the OpMode object,
