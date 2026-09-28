@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.mechanisms.BasicIntake;
+import org.firstinspires.ftc.teamcode.mechanisms.IntakeSideWheels;
 import org.firstinspires.ftc.teamcode.mechanisms.MecanumDrivetrain;
 import org.firstinspires.ftc.teamcode.utilities.RobotMath;
 
@@ -31,6 +32,7 @@ public class MecanumTeleOp extends LinearOpMode {
 
     private final MecanumDrivetrain drivetrain = new MecanumDrivetrain();
     private final BasicIntake intake = new BasicIntake();
+    private final IntakeSideWheels sideWheels = new IntakeSideWheels();
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -99,6 +101,14 @@ public class MecanumTeleOp extends LinearOpMode {
                     intake.spinIntake(-gamepad2.left_trigger);
                 } else {
                     intake.spinIntake(0.0);
+                }
+
+                if (gamepad1.a) {
+                    sideWheels.setPower(1);
+                } else if (gamepad1.b) {
+                    sideWheels.setPower(-1);
+                } else {
+                    sideWheels.setPower(0);
                 }
 
                 telemetry.addData("Drive Mode", driveMode);
