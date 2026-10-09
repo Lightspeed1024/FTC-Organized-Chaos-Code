@@ -48,10 +48,6 @@ public class MecanumDrivetrain extends Drivetrain{
      * @param opMode Pass in "this". It will provide the OpMode functionalities to this class.
      * @param hwMap Pass in "hardwareMap". This will give the class access to the motor configurations on the Control Hub.
      */
-    public void init(LinearOpMode opMode, HardwareMap hwMap) {
-        init(opMode, hwMap, 5.50, 2.75);
-    }
-
     public void init(LinearOpMode opMode, HardwareMap hwMap, double slowDownRate, double speedUpRate) {
         this.opMode = opMode;
         this.telemetry = opMode.telemetry;
