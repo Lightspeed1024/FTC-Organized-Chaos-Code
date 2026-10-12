@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.mechanisms;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -12,7 +13,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class MecanumDrivetrain extends Drivetrain{
-    private DcMotor frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
+    private DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
     private IMU imu;
     private Telemetry telemetry;
     private LinearOpMode opMode;
@@ -58,10 +59,10 @@ public class MecanumDrivetrain extends Drivetrain{
         this.slowDownRate = slowDownRate;
         this.speedUpRate = speedUpRate;
 
-        frontLeftMotor = hwMap.get(DcMotor.class, "frontLeftMotor");
-        backLeftMotor = hwMap.get(DcMotor.class, "backLeftMotor");
-        frontRightMotor = hwMap.get(DcMotor.class, "frontRightMotor");
-        backRightMotor = hwMap.get(DcMotor.class, "backRightMotor");
+        frontLeftMotor = hwMap.get(DcMotorEx.class, "frontLeftMotor");
+        backLeftMotor = hwMap.get(DcMotorEx.class, "backLeftMotor");
+        frontRightMotor = hwMap.get(DcMotorEx.class, "frontRightMotor");
+        backRightMotor = hwMap.get(DcMotorEx.class, "backRightMotor");
 
         frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotor.Direction.REVERSE);
