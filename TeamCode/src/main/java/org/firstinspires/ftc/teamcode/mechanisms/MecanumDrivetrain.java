@@ -211,31 +211,6 @@ public class MecanumDrivetrain extends Drivetrain{
     }
 
     /**
-     * Drives the left and right sides independently using encoder distances.
-     * Positive distances move forward and negative distances move backward.
-     */
-    public void driveInches(
-            double speed,
-            double leftInches,
-            double rightInches,
-            double timeoutSeconds
-    ) {
-        double forwardInches = (leftInches + rightInches) / 2.0;
-        double turnInches = (leftInches - rightInches) / 2.0;
-        double turnDegrees = (turnInches / (TURN_CIRCUMFERENCE * TURN_DISTANCE_MULTIPLIER)) * 360.0;
-
-        driveInches(speed, forwardInches, 0.0, turnDegrees, timeoutSeconds);
-    }
-
-    /**
-     * Strafes using encoder distance. Positive inches move right;
-     * negative inches move left.
-     */
-    public void strafeInches(double speed, double inches, double timeoutSeconds) {
-        driveInches(speed, 0.0, inches, 0.0, timeoutSeconds);
-    }
-
-    /**
      * Turns using the calibrated encoder distance. Positive degrees turn
      * clockwise; negative degrees turn counterclockwise.
      */

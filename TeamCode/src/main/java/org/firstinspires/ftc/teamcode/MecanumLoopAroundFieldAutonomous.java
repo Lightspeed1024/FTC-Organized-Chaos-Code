@@ -29,12 +29,10 @@ public class MecanumLoopAroundFieldAutonomous extends LinearOpMode {
         }
 
         // Drive a square around the field.
-        // Positive drive distance moves forward; negative moves backward.
-        // Positive strafe distance moves right; negative moves left.
-        drivetrain.driveInches(DRIVE_SPEED, 132, 132, 10.0);
-        drivetrain.strafeInches(STRAFE_SPEED, -132, 10.0);
-        drivetrain.driveInches(DRIVE_SPEED, -132, -132, 10.0);
-        drivetrain.strafeInches(STRAFE_SPEED, 132, 10.0);
+        drivetrain.driveInches(DRIVE_SPEED, 132, 0, 0, 10.0);
+        drivetrain.driveInches(DRIVE_SPEED, 0, -132, 0, 10.0);
+        drivetrain.driveInches(DRIVE_SPEED, -132, 0, 0, 10.0);
+        drivetrain.driveInches(DRIVE_SPEED, 0, 132, 0, 10.0);
 
         /*
          * Additional examples:
