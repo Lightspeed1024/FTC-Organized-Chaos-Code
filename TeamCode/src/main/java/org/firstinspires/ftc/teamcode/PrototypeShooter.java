@@ -3,21 +3,24 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 @Autonomous
 public class PrototypeShooter extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        DcMotor shooter = hardwareMap.get(DcMotor.class, "shooter");
+        DcMotorEx shooter = hardwareMap.get(DcMotorEx.class, "shooter");
 
-        shooter.setDirection(DcMotor.Direction.FORWARD);
-        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter.setDirection(DcMotorEx.Direction.FORWARD);
+        shooter.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         waitForStart();
 
         while (opModeIsActive()) {
             shooter.setPower(1);
+            telemetry.addData("Speed", shooter.getVelocity() * 60 / 28); // convert ticks per second to RPM
+            telemetry.update();
         }
     }
 }
