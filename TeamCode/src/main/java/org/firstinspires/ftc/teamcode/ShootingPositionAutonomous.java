@@ -33,14 +33,14 @@ public class ShootingPositionAutonomous extends LinearOpMode {
         // Positive strafe distance moves right; negative moves left.
 
         drivetrain.turnDegrees(TURN_SPEED, -90, 5.0);
-        drivetrain.driveInches(DRIVE_SPEED, 48, 48, 5.0);
+        drivetrain.driveInches(DRIVE_SPEED, 48, 0, 5.0, 10);
         sleep(200);
-        drivetrain.driveInches(DRIVE_SPEED, -48, -48, 5.0);
+        drivetrain.driveInches(DRIVE_SPEED, -48, 0, 5.0, 10);
         sleep(200);
         drivetrain.turnDegrees(TURN_SPEED, 90, 10);
-        drivetrain.driveInches(DRIVE_SPEED, 96, 96, 5.0);
+        drivetrain.driveInches(DRIVE_SPEED, 96, 0, 5.0, 10);
         sleep(200);
-        drivetrain.strafeInches(STRAFE_SPEED, -48, 5.0);
+        drivetrain.driveInches(STRAFE_SPEED, 0, -48, 5.0, 10);
 
         /*
          * Additional examples:
