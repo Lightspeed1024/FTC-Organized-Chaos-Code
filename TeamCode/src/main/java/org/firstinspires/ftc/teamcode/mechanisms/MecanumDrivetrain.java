@@ -129,7 +129,10 @@ public class MecanumDrivetrain extends Drivetrain{
      * @param strafe The distance in inches to move sideways: positive is right, negative is left.
      * @param turnDegrees The degrees to turn the robot: positive is clockwise, negative is counter-clockwise.
      * @param timeoutSeconds The time in seconds after which to stop movement, even if the action is unfinished.
+     * @deprecated driveInches is going to get PHASED OUT in favor of driving in millimeters for more precision and compatibility with PedroPathing.
+     * Use {@link #driveMillimeters} instead.
      */
+    @Deprecated
     public void driveInches(double speed, double forward, double strafe, double turnDegrees, double timeoutSeconds) {
         if (!opMode.opModeIsActive()) {
             return;
@@ -208,6 +211,10 @@ public class MecanumDrivetrain extends Drivetrain{
             frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
+    }
+    
+    public void driveMillimeters(double speed, double forward, double strafe, double turnDegrees, double timeoutSeconds) {
+        
     }
 
     /**
