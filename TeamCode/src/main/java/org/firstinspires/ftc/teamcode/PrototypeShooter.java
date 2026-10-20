@@ -10,10 +10,13 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 @Autonomous
 public class PrototypeShooter extends LinearOpMode {
 
+    DcMotorEx shooter;
+    FtcDashboard dashboard;
+
     @Override
     public void runOpMode() throws InterruptedException {
-        DcMotorEx shooter = hardwareMap.get(DcMotorEx.class, "shooter");
-        FtcDashboard dashboard = FtcDashboard.getInstance();
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
+        dashboard = FtcDashboard.getInstance();
 
         shooter.setDirection(DcMotorEx.Direction.FORWARD);
         shooter.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
