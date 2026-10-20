@@ -19,16 +19,22 @@ public class MecanumDrivetrain extends Drivetrain{
     private LinearOpMode opMode;
     public enum Motor {FRONT_LEFT_MOTOR, FRONT_RIGHT_MOTOR, BACK_LEFT_MOTOR, BACK_RIGHT_MOTOR}
 
-    private static final double COUNTS_PER_MOTOR_REV = 560.0;
-    private static final double DRIVE_GEAR_REDUCTION = 1.0;
+    private static final double COUNTS_PER_MOTOR_REV = 28; // REV HD Hex Motor
+    private static final double DRIVE_GEAR_REDUCTION = 20; // 20:1 UltraPlanetary Gearbox
     private static final double WHEEL_DIAMETER_INCHES = 2.95276; // REV 75mm Mecanum Wheels
+    private static final double WHEEL_DIAMETER_MILLIMETERS = 75;
     private static final double TRACK_WIDTH_INCHES = 15.9;
+    private static final double TRACK_WIDTH_MILLIMETERS = 404;
     // The robot previously turned about 45 degrees when commanded to turn 90.
     private static final double TURN_DISTANCE_MULTIPLIER = 1;
-    private static final double TURN_CIRCUMFERENCE = Math.PI * TRACK_WIDTH_INCHES;
+    private static final double TURN_CIRCUMFERENCE_MILLIMETERS = Math.PI * TRACK_WIDTH_MILLIMETERS;
+    private static final double TURN_CIRCUMFERENCE_INCHES = Math.PI * TRACK_WIDTH_INCHES;
     private static final double COUNTS_PER_INCH =
             (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION)
                     / (WHEEL_DIAMETER_INCHES * Math.PI);
+    private static final double COUNTS_PER_MILLIMETER =
+            (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION)
+                    / (WHEEL_DIAMETER_MILLIMETERS * Math.PI);
     private final ElapsedTime runtime = new ElapsedTime();
 
     private double frontLeftPower = 0.0;
@@ -129,7 +135,10 @@ public class MecanumDrivetrain extends Drivetrain{
      * @param strafe The distance in inches to move sideways: positive is right, negative is left.
      * @param turnDegrees The degrees to turn the robot: positive is clockwise, negative is counter-clockwise.
      * @param timeoutSeconds The time in seconds after which to stop movement, even if the action is unfinished.
+     * @deprecated driveInches is going to get PHASED OUT in favor of driving in millimeters for more precision and compatibility with PedroPathing.
+     * Use {@link #driveMillimeters} instead.
      */
+    @Deprecated
     public void driveInches(double speed, double forward, double strafe, double turnDegrees, double timeoutSeconds) {
         if (!opMode.opModeIsActive()) {
             return;
@@ -144,10 +153,86 @@ public class MecanumDrivetrain extends Drivetrain{
 
         int forwardTicks = inchesToTicks(forward);
         int strafeTicks = inchesToTicks(strafe);
-        double turnInches = (turnDegrees / 360.0)
-                * TURN_CIRCUMFERENCE
-                * TURN_DISTANCE_MULTIPLIER;
+        double turnInches = (turnDegrees / 360.0) * TURN_CIRCUMFERENCE_INCHES;
         int turnTicks = inchesToTicks(turnInches);
+
+        int frontLeftTarget = frontLeftMotor.getCurrentPosition() + forwardTicks + strafeTicks + turnTicks;
+        int frontRightTarget = frontRightMotor.getCurrentPosition() + forwardTicks - strafeTicks - turnTicks;
+        int backLeftTarget = backLeftMotor.getCurrentPosition() + forwardTicks - strafeTicks + turnTicks;
+        int backRightTarget = backRightMotor.getCurrentPosition() + forwardTicks + strafeTicks - turnTicks;
+
+        frontLeftMotor.setTargetPosition(frontLeftTarget);
+        frontRightMotor.setTargetPosition(frontRightTarget);
+        backLeftMotor.setTargetPosition(backLeftTarget);
+        backRightMotor.setTargetPosition(backRightTarget);
+
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        runtime.reset();
+
+        try {
+            setMotorPowers(drivePower, drivePower, drivePower, drivePower);
+
+            // Wait until all motors finish, time runs out, or the OpMode stops.
+            while (opMode.opModeIsActive()
+                    && runtime.seconds() < timeoutSeconds
+                    && isDriving()) {
+
+                telemetry.addData("Front Powers",
+                        "FL: %.2f    FR: %.2f",
+                        frontLeftPower,
+                        frontRightPower);
+                telemetry.addLine("");
+                telemetry.addData("Back Powers",
+                        " BL: %.2f    BR: %.2f", // DO NOT REMOVE THE SPACE IN FRONT OF BL, AS IT IS INTENDED TO ALIGN NUMBERS.
+                        backLeftPower,
+                        backRightPower);
+                telemetry.addLine("--------------------------------");
+                telemetry.addData("Front Targets",
+                        "FL: %d    FR: %d",
+                        frontLeftTarget,
+                        frontRightTarget);
+                telemetry.addData(
+                        "Back Targets",
+                        " BL: %d    BR: %d", // DO NOT REMOVE THE SPACE IN FRONT OF BL, AS IT IS INTENDED TO ALIGN NUMBERS.
+                        backLeftTarget,
+                        backRightTarget);
+                telemetry.addData(
+                        "Time",
+                        "%.1f / %.1f seconds",
+                        runtime.seconds(),
+                        timeoutSeconds);
+                telemetry.update();
+                opMode.idle();
+            }
+        } finally {
+            stop();
+            backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+    }
+    
+    public void driveMillimeters(double power, double forward, double strafe, double turnDegrees, double timeoutSeconds) {
+        if (!opMode.opModeIsActive()) {
+            return;
+        }
+
+        double drivePower = Range.clip(Math.abs(power), 0.0, 1.0);
+
+        if (drivePower == 0.0 || timeoutSeconds <= 0.0) {
+            stop();
+            return;
+        }
+
+        int forwardTicks = millimetersToTicks(forward);
+        int strafeTicks = millimetersToTicks(strafe);
+        double turnMillimeters = (turnDegrees / 360.0) * TURN_CIRCUMFERENCE_MILLIMETERS;
+        int turnTicks = millimetersToTicks(turnMillimeters);
 
         int frontLeftTarget = frontLeftMotor.getCurrentPosition() + forwardTicks + strafeTicks + turnTicks;
         int frontRightTarget = frontRightMotor.getCurrentPosition() + forwardTicks - strafeTicks - turnTicks;
@@ -215,7 +300,7 @@ public class MecanumDrivetrain extends Drivetrain{
      * clockwise; negative degrees turn counterclockwise.
      */
     public void turnDegrees(double speed, double degrees, double timeoutSeconds) {
-        driveInches(speed, 0.0, 0.0, degrees, timeoutSeconds);
+        driveMillimeters(speed, 0.0, 0.0, degrees, timeoutSeconds);
     }
 
     public boolean isDriving() {
@@ -311,5 +396,9 @@ public class MecanumDrivetrain extends Drivetrain{
      */
     private int inchesToTicks(double inches) {
         return (int) Math.round(inches * COUNTS_PER_INCH);
+    }
+
+    private int millimetersToTicks(double millimeters) {
+        return (int) Math.round(millimeters * COUNTS_PER_MILLIMETER);
     }
 }
