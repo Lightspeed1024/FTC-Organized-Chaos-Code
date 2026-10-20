@@ -92,7 +92,7 @@ public class MecanumDrivetrain extends Drivetrain{
      * @param strafe The power to move sideways, typically the x-axis of the left stick.
      * @param turn The power to rotate, typically the x-axis of the right stick.
      */
-    public void driveTeleOp(double forward, double strafe, double turn, double loopTime, boolean smooth) {
+    public void drive(double forward, double strafe, double turn, double loopTime, boolean smooth) {
         wantedFrontLeftPower = forward + strafe + turn;
         wantedBackLeftPower = forward - strafe + turn;
         wantedFrontRightPower = forward - strafe - turn;
@@ -350,7 +350,7 @@ public class MecanumDrivetrain extends Drivetrain{
         double newForward = speed * Math.sin(robotTheta);
         double newStrafe = speed * Math.cos(robotTheta);
 
-        this.driveTeleOp(newForward, newStrafe, turn, loopTime, smooth);
+        this.drive(newForward, newStrafe, turn, loopTime, smooth);
     }
 
     public double getYaw() {

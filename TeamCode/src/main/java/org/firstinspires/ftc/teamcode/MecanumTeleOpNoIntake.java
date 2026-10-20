@@ -47,7 +47,7 @@ public class MecanumTeleOpNoIntake extends LinearOpMode {
         waitForStart();
 
         if (isStopRequested()) {
-            drivetrain.driveTeleOp(0.0, 0.0, 0.0, 0.0, false);
+            drivetrain.drive(0.0, 0.0, 0.0, 0.0, false);
             return;
         }
 
@@ -90,7 +90,7 @@ public class MecanumTeleOpNoIntake extends LinearOpMode {
                 turn *= speedLimit;
 
                 // Send the stick values to the drivetrain. True turns smoothing on.
-                drivetrain.driveTeleOp(forward, strafe, turn, loopTime, true);
+                drivetrain.drive(forward, strafe, turn, loopTime, true);
 
                 if (gamepad2.right_trigger > 0.05) {
 //                    intake.spinIntake(gamepad2.right_trigger);
@@ -149,7 +149,7 @@ public class MecanumTeleOpNoIntake extends LinearOpMode {
             }
         } finally {
 //            intake.spinIntake(0.0);
-            drivetrain.driveTeleOp(0.0, 0.0, 0.0, 0.0, false);
+            drivetrain.drive(0.0, 0.0, 0.0, 0.0, false);
         }
     }
 }
