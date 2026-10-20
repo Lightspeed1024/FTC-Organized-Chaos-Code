@@ -7,6 +7,11 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class BasicIntake {
     private DcMotor intake;
 
+
+    /**
+     * Initializes the intake. NEEDS TO BE CALLED EVERY TIME THIS CLASS IS INSTANTIATED!!!
+     * @param hwMap Pass in hardwareMap in the OpMode.
+     */
     public void init(HardwareMap hwMap) {
         intake = hwMap.get(DcMotor.class, "intake");
 
