@@ -87,7 +87,7 @@ public class MecanumDrivetrain extends Drivetrain{
     }
 
     /**
-     * A robot-relative drive method. The movements are made relative to the robot's POV.
+     * A robot-relative drive method. The movements are made relative to the robot's POV. This method sets the powers for the motors to move at.
      * @param forward The power at which to drive forward, typically given by the left stick y-axis on the gamepad.
      * @param strafe The power to move sideways, typically the x-axis of the left stick.
      * @param turn The power to rotate, typically the x-axis of the right stick.
