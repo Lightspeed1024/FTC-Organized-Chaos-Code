@@ -26,11 +26,12 @@ public class PrototypeShooter extends LinearOpMode {
         while (opModeIsActive()) {
             TelemetryPacket packet = new TelemetryPacket();
 
-            packet.put("Shooter Speed", shooter.getVelocity() * 60 / 28);
+            double shooterRPM = shooter.getVelocity() / 28 * 60;
+            packet.put("Shooter Speed", shooterRPM);
 
             dashboard.sendTelemetryPacket(packet);
             shooter.setPower(1);
-            telemetry.addData("Speed", shooter.getVelocity() * 60 / 28); // convert ticks per second to RPM
+            telemetry.addData("Speed", shooterRPM);
             telemetry.update();
         }
     }
