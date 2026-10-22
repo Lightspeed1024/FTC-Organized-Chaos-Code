@@ -30,6 +30,7 @@ public class PrototypeShooter extends LinearOpMode {
     double[] stepSizes = {10.0, 1.0, 0.1, 0.001, 0.0001};
     int stepIndex = 1;
     boolean isTuning = false;
+    boolean useCustomPIDF = true;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -39,7 +40,7 @@ public class PrototypeShooter extends LinearOpMode {
         shooter.setDirection(DcMotorEx.Direction.FORWARD);
         shooter.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
-        PIDFCoefficients defaultPIDF = shooter.getPIDFCoefficients(shooter.getMode());
+        PIDFCoefficients defaultPIDF = shooter.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
         PIDFCoefficients customPIDF = new PIDFCoefficients(kP, 0, 0, kF);
 
         waitForStart();
@@ -55,6 +56,13 @@ public class PrototypeShooter extends LinearOpMode {
             }
 
             if (isTuning) {
+                if (gamepad1.leftBumperWasPressed()) {
+                    useCustomPIDF = false;
+                }
+                if (gamepad1.rightBumperWasPressed()) {
+                    useCustomPIDF = true;
+                }
+
                 if (gamepad1.aWasPressed()) {
                     // Bottom button (cross)
                     if (currTargetVelocity == highVelocity) {currTargetVelocity = lowVelocity;}
@@ -82,7 +90,12 @@ public class PrototypeShooter extends LinearOpMode {
 
                 customPIDF.p = kP;
                 customPIDF.f = kF;
-                shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, customPIDF);
+                if (useCustomPIDF) {
+                    shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, customPIDF);
+                } else {
+                    shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, defaultPIDF);
+                }
+                shooter.setVelocity(currTargetVelocity);
             } else {
                 shooter.setPower(1);
             }
