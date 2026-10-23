@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.mechanisms;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -11,10 +12,16 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class MecanumDrivetrain extends Drivetrain{
     private DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
     private IMU imu;
+    private GoBildaPinpointDriver pinpoint;
+
+    // Measured from the robot center: vertical/X pod left, horizontal/Y pod behind.
+    private static final double PINPOINT_X_OFFSET_MM = 195.0;
+    private static final double PINPOINT_Y_OFFSET_MM = -54.5;
     private Telemetry telemetry;
     private LinearOpMode opMode;
     public enum Motor {FRONT_LEFT_MOTOR, FRONT_RIGHT_MOTOR, BACK_LEFT_MOTOR, BACK_RIGHT_MOTOR}
@@ -84,6 +91,21 @@ public class MecanumDrivetrain extends Drivetrain{
                 RevHubOrientationOnRobot.UsbFacingDirection.LEFT
         );
         imu.initialize(new IMU.Parameters(RevOrientation));
+
+        // The Pinpoint computer itself must be named "pinpoint" in Robot Configuration.
+        pinpoint = hwMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        pinpoint.setEncoderResolution(
+                GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
+        pinpoint.setOffsets(
+                PINPOINT_X_OFFSET_MM,
+                PINPOINT_Y_OFFSET_MM,
+                DistanceUnit.MM);
+        pinpoint.setEncoderDirections(
+                GoBildaPinpointDriver.EncoderDirection.FORWARD,
+                GoBildaPinpointDriver.EncoderDirection.FORWARD);
+
+        // Keep the robot still while the Pinpoint zeroes its position and IMU.
+        pinpoint.resetPosAndIMU();
     }
 
     /**
@@ -181,6 +203,7 @@ public class MecanumDrivetrain extends Drivetrain{
                     && runtime.seconds() < timeoutSeconds
                     && isDriving()) {
 
+                pinpoint.update();
                 telemetry.addData("Front Powers",
                         "FL: %.2f    FR: %.2f",
                         frontLeftPower,
@@ -259,6 +282,7 @@ public class MecanumDrivetrain extends Drivetrain{
                     && runtime.seconds() < timeoutSeconds
                     && isDriving()) {
 
+                pinpoint.update();
                 telemetry.addData("Front Powers",
                         "FL: %.2f    FR: %.2f",
                         frontLeftPower,
@@ -286,7 +310,7 @@ public class MecanumDrivetrain extends Drivetrain{
                 telemetry.update();
                 opMode.idle();
             }
-        } finally {
+         } finally {
             stop();
             backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -345,7 +369,8 @@ public class MecanumDrivetrain extends Drivetrain{
         double theta = Math.atan2(forward, strafe);
         double speed = Math.hypot(strafe, forward);
 
-        double robotTheta = AngleUnit.normalizeRadians(theta - imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS));
+        pinpoint.update();
+        double robotTheta = AngleUnit.normalizeRadians(theta - pinpoint.getHeading(AngleUnit.RADIANS));
 
         double newForward = speed * Math.sin(robotTheta);
         double newStrafe = speed * Math.cos(robotTheta);
@@ -357,7 +382,24 @@ public class MecanumDrivetrain extends Drivetrain{
         return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
     }
 
-    public double getCurrentPosition(Motor motor) {
+    /** Refresh the Pinpoint readings. Call once each TeleOp loop. */
+    public void updateOdometry() {
+        pinpoint.update();
+    }
+
+    public double getOdometryXInches() {
+        return pinpoint.getPosX(DistanceUnit.INCH);
+    }
+
+    public double getOdometryYInches() {
+        return pinpoint.getPosY(DistanceUnit.INCH);
+    }
+
+    public double getOdometryHeadingDegrees() {
+        return pinpoint.getHeading(AngleUnit.DEGREES);
+    }
+
+     public double getCurrentPosition(Motor motor) {
         switch (motor) {
             case FRONT_LEFT_MOTOR: return frontLeftMotor.getCurrentPosition();
             case FRONT_RIGHT_MOTOR: return frontRightMotor.getCurrentPosition();
