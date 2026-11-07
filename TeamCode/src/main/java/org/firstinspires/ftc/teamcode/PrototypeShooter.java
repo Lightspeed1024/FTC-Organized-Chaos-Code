@@ -4,11 +4,14 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
-@Autonomous
+import org.firstinspires.ftc.teamcode.mechanisms.BasicIntake;
+
+@TeleOp
 public class PrototypeShooter extends LinearOpMode {
 
     DcMotorEx shooter;
@@ -31,6 +34,7 @@ public class PrototypeShooter extends LinearOpMode {
     int stepIndex = 1;
     boolean isTuning = false;
     boolean useCustomPIDF = true;
+    BasicIntake intake = new BasicIntake();
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -42,6 +46,8 @@ public class PrototypeShooter extends LinearOpMode {
 
         PIDFCoefficients defaultPIDF = shooter.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
         PIDFCoefficients customPIDF = new PIDFCoefficients(kP, 0, 0, kF);
+
+        intake.init(hardwareMap);
 
         waitForStart();
 
@@ -98,6 +104,14 @@ public class PrototypeShooter extends LinearOpMode {
                 shooter.setVelocity(currTargetVelocity);
             } else {
                 shooter.setPower(1);
+            }
+
+            if (gamepad2.right_trigger > 0.05) {
+                intake.spinIntake(gamepad2.right_trigger);
+            } else if (gamepad2.left_trigger > 0.05) {
+                intake.spinIntake(-gamepad2.left_trigger);
+            } else {
+                intake.spinIntake(0.0);
             }
 
             TelemetryPacket packet = new TelemetryPacket();
