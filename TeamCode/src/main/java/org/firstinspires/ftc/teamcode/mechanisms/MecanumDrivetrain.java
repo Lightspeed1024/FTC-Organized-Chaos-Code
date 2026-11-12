@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.mechanisms;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -12,16 +11,11 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class MecanumDrivetrain extends Drivetrain{
     private DcMotorEx frontLeftMotor, backLeftMotor, frontRightMotor, backRightMotor;
     private IMU imu;
-    private GoBildaPinpointDriver pinpoint;
 
-    // Measured from the robot center: vertical/X pod left, horizontal/Y pod behind.
-    private static final double PINPOINT_X_OFFSET_MM = 195.0;
-    private static final double PINPOINT_Y_OFFSET_MM = -54.5;
     private Telemetry telemetry;
     private LinearOpMode opMode;
     public enum Motor {FRONT_LEFT_MOTOR, FRONT_RIGHT_MOTOR, BACK_LEFT_MOTOR, BACK_RIGHT_MOTOR}
@@ -92,20 +86,6 @@ public class MecanumDrivetrain extends Drivetrain{
         );
         imu.initialize(new IMU.Parameters(RevOrientation));
 
-        // The Pinpoint computer itself must be named "pinpoint" in Robot Configuration.
-        pinpoint = hwMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.setEncoderResolution(
-                GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
-        pinpoint.setOffsets(
-                PINPOINT_X_OFFSET_MM,
-                PINPOINT_Y_OFFSET_MM,
-                DistanceUnit.MM);
-        pinpoint.setEncoderDirections(
-                GoBildaPinpointDriver.EncoderDirection.FORWARD,
-                GoBildaPinpointDriver.EncoderDirection.FORWARD);
-
-        // Keep the robot still while the Pinpoint zeroes its position and IMU.
-        pinpoint.resetPosAndIMU();
     }
 
     /**
@@ -203,7 +183,6 @@ public class MecanumDrivetrain extends Drivetrain{
                     && runtime.seconds() < timeoutSeconds
                     && isDriving()) {
 
-                pinpoint.update();
                 telemetry.addData("Front Powers",
                         "FL: %.2f    FR: %.2f",
                         frontLeftPower,
@@ -245,7 +224,7 @@ public class MecanumDrivetrain extends Drivetrain{
             return;
         }
 
-        double drivePower = Range.clip(Math.abs(power), 0.0, 1.0);
+         double drivePower = Range.clip(Math.abs(power), 0.0, 1.0);
 
         if (drivePower == 0.0 || timeoutSeconds <= 0.0) {
             stop();
@@ -282,7 +261,6 @@ public class MecanumDrivetrain extends Drivetrain{
                     && runtime.seconds() < timeoutSeconds
                     && isDriving()) {
 
-                pinpoint.update();
                 telemetry.addData("Front Powers",
                         "FL: %.2f    FR: %.2f",
                         frontLeftPower,
@@ -320,6 +298,115 @@ public class MecanumDrivetrain extends Drivetrain{
     }
 
     /**
+     * Uses Pinpoint feedback to drive to a position measured from the pose
+     * recorded when Odometry was initialized. Positive right is robot-right
+     * from the starting direction. Positive heading turns clockwise.
+     *
+     * @return true if the robot reached the target before the timeout.
+     */
+    public boolean driveToPosition(
+            Odometry odometry,
+            double targetForwardInches,
+            double targetRightInches,
+            double targetHeadingDegrees,
+            double maxDrivePower,
+            double maxTurnPower,
+            double timeoutSeconds) {
+
+        double driveLimit = Range.clip(Math.abs(maxDrivePower), 0.0, 1.0);
+        double turnLimit = Range.clip(Math.abs(maxTurnPower), 0.0, 1.0);
+        if (!opMode.opModeIsActive()
+                || driveLimit == 0.0
+                || turnLimit == 0.0
+                || timeoutSeconds <= 0.0) {
+            stop();
+            return false;
+        }
+
+        final double positionTolerance = 1.0; // inches
+        final double headingTolerance = 3.0; // degrees
+        final double minimumDrivePower = Math.min(0.10, driveLimit);
+        final double minimumTurnPower = Math.min(0.10, turnLimit);
+        final double positionGain = 0.07; // power per inch of position error
+        final double headingGain = 0.015; // power per degree of heading error
+
+         boolean reachedTarget = false;
+        runtime.reset();
+
+        try {
+            while (opMode.opModeIsActive() && runtime.seconds() < timeoutSeconds) {
+                odometry.update();
+
+                double xError = targetForwardInches - odometry.getXInches();
+                // Pinpoint Y is positive to the robot's left; this method uses right-positive.
+                double rightError = targetRightInches + odometry.getYInches();
+                double distanceError = Math.hypot(xError, rightError);
+
+                double headingError = targetHeadingDegrees - odometry.getHeadingDegrees();
+                while (headingError > 180.0) headingError -= 360.0;
+                while (headingError < -180.0) headingError += 360.0;
+
+                if (distanceError <= positionTolerance
+                        && Math.abs(headingError) <= headingTolerance) {
+                    reachedTarget = true;
+                    break;
+                }
+
+                double fieldForward = 0.0;
+                double fieldRight = 0.0;
+                if (distanceError > positionTolerance) {
+                    double movePower = Range.clip(
+                            distanceError * positionGain,
+                            minimumDrivePower,
+                            driveLimit);
+                    fieldForward = movePower * xError / distanceError;
+                    fieldRight = movePower * rightError / distanceError;
+                }
+
+                 double turnPower = 0.0;
+                if (Math.abs(headingError) > headingTolerance) {
+                    turnPower = Range.clip(
+                            headingError * headingGain,
+                            -turnLimit,
+                            turnLimit);
+                    if (Math.abs(turnPower) < minimumTurnPower) {
+                        turnPower = Math.copySign(minimumTurnPower, headingError);
+                    }
+                }
+
+                driveFieldRelative(
+                        fieldForward,
+                        fieldRight,
+                        turnPower,
+                        odometry.getHeadingRadians(),
+                        0.02,
+                        true);
+
+                telemetry.addData(
+                        "Target Fwd / Right",
+                        "%.1f / %.1f in",
+                        targetForwardInches,
+                        targetRightInches);
+                telemetry.addData(
+                        "Current Fwd / Right",
+                        "%.1f / %.1f in",
+                        odometry.getXInches(),
+                        -odometry.getYInches());
+                telemetry.addData(
+                        "Position Error", "%.1f in", distanceError);
+                telemetry.addData(
+                        "Heading Error", "%.1f deg", headingError);
+                telemetry.update();
+                opMode.idle();
+            }
+        } finally {
+            stop();
+        }
+
+        return reachedTarget;
+    }
+
+    /**
      * Turns using the calibrated encoder distance. Positive degrees turn
      * clockwise; negative degrees turn counterclockwise.
      */
@@ -327,7 +414,7 @@ public class MecanumDrivetrain extends Drivetrain{
         driveMillimeters(speed, 0.0, 0.0, degrees, timeoutSeconds);
     }
 
-    public boolean isDriving() {
+     public boolean isDriving() {
         return frontLeftMotor.isBusy()
                 || frontRightMotor.isBusy()
                 || backLeftMotor.isBusy()
@@ -359,44 +446,30 @@ public class MecanumDrivetrain extends Drivetrain{
         backRightPower = br;
     }
 
-    /**
-     * A field-oriented version of driving, where forwards and sideways movement is relative to the driver's POV.
-     * @param forward The power at which to drive forward, typically given by the left stick y-axis on the gamepad.
-     * @param strafe The power to move sideways, typically the x-axis of the left stick.
-     * @param turn The power to rotate at, typically the x-axis of the right stick.
+     /**
+     * Drives using the driver's field direction, corrected by the robot heading.
+     * Pinpoint heading is positive clockwise.
      */
-    public void driveFieldRelative(double forward, double strafe, double turn, double loopTime, boolean smooth) {
-        double theta = Math.atan2(forward, strafe);
-        double speed = Math.hypot(strafe, forward);
+    public void driveFieldRelative(
+            double fieldForward,
+            double fieldStrafe,
+            double turn,
+            double headingRadians,
+            double loopTime,
+            boolean smooth) {
 
-        pinpoint.update();
-        double robotTheta = AngleUnit.normalizeRadians(theta - pinpoint.getHeading(AngleUnit.RADIANS));
+        double robotForward =
+                fieldForward * Math.cos(headingRadians)
+                        + fieldStrafe * Math.sin(headingRadians);
+        double robotStrafe =
+                -fieldForward * Math.sin(headingRadians)
+                        + fieldStrafe * Math.cos(headingRadians);
 
-        double newForward = speed * Math.sin(robotTheta);
-        double newStrafe = speed * Math.cos(robotTheta);
-
-        this.drive(newForward, newStrafe, turn, loopTime, smooth);
+        drive(robotForward, robotStrafe, turn, loopTime, smooth);
     }
 
     public double getYaw() {
         return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-    }
-
-    /** Refresh the Pinpoint readings. Call once each TeleOp loop. */
-    public void updateOdometry() {
-        pinpoint.update();
-    }
-
-    public double getOdometryXInches() {
-        return pinpoint.getPosX(DistanceUnit.INCH);
-    }
-
-    public double getOdometryYInches() {
-        return pinpoint.getPosY(DistanceUnit.INCH);
-    }
-
-    public double getOdometryHeadingDegrees() {
-        return pinpoint.getHeading(AngleUnit.DEGREES);
     }
 
      public double getCurrentPosition(Motor motor) {
