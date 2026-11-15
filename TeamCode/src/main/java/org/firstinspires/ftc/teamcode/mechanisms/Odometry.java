@@ -12,7 +12,7 @@ public class Odometry {
 
     // Measured from robot center: X pod is left; Y pod is behind.
     private static final double X_POD_OFFSET_MM = 184.8;
-    private static final double Y_POD_OFFSET_MM = -184.0;
+    private static final double Y_POD_OFFSET_MM = -143.0;
 
     private GoBildaPinpointDriver pinpoint;
 
