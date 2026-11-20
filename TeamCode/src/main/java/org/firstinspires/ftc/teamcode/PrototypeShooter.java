@@ -27,10 +27,10 @@ public class PrototypeShooter extends LinearOpMode {
      */
     double kF = 0;
 
-    double highVelocity = 1500;
-    double lowVelocity = 900;
+    double highVelocity = 2400 * 28.0 / 60;
+    double lowVelocity = 1600 * 28.0 / 60;
     double currTargetVelocity = highVelocity;
-    double[] stepSizes = {10.0, 1.0, 0.1, 0.001, 0.0001};
+    double[] stepSizes = {10.0, 1.0, 0.1, 0.01, 0.001, 0.0001};
     int stepIndex = 1;
     boolean isTuning = false;
     boolean useCustomPIDF = true;
@@ -46,6 +46,8 @@ public class PrototypeShooter extends LinearOpMode {
 
         PIDFCoefficients defaultPIDF = shooter.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
         PIDFCoefficients customPIDF = new PIDFCoefficients(kP, 0, 0, kF);
+
+        telemetry.setMsTransmissionInterval(200); // 20ms = 50 updates per second
 
         intake.init(hardwareMap);
 
@@ -116,14 +118,18 @@ public class PrototypeShooter extends LinearOpMode {
 
             TelemetryPacket packet = new TelemetryPacket();
 
-            double shooterRPM = shooter.getVelocity() / 28 * 60;
+            double shooterRPM = shooter.getVelocity() * 60 / 28.0;
+            double targetRPM = currTargetVelocity * 60 / 28.0;
             packet.put("Shooter Speed", shooterRPM);
+            packet.put("Target Speed", targetRPM);
 
             dashboard.sendTelemetryPacket(packet);
             telemetry.addLine("Circle to turn on tuning, square to turn off");
             telemetry.addLine("Cross to change target velocity, triangle to change step size");
+            telemetry.addLine("Right dpad to increase kF, left to decrease.");
+            telemetry.addLine("Up dpad to increase kP, down to decrease.");
             telemetry.addData("Speed", shooterRPM);
-            telemetry.addData("Target Velocity", currTargetVelocity);
+            telemetry.addData("Target Velocity", targetRPM);
             telemetry.addData("Step Size", stepSizes[stepIndex]);
             telemetry.addData("P", kP);
             telemetry.addData("F", kF);
