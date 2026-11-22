@@ -101,11 +101,15 @@ public class MecanumTeleOp extends LinearOpMode {
                     intake.spinIntake(0.0);
                 }
 
-                boolean currentGamepad2A = gamepad2.a;
-                if (currentGamepad2A && !lastGamepad2A) {
+//                boolean currentGamepad2A = gamepad2.a;
+//                if (currentGamepad2A && !lastGamepad2A) {
+//                    isShooterOn = !isShooterOn;
+//                }
+//                lastGamepad2A = currentGamepad2A;
+
+                if (gamepad2.aWasPressed()) {
                     isShooterOn = !isShooterOn;
                 }
-                lastGamepad2A = currentGamepad2A;
 
                 if (isShooterOn) {
                     shooter.setRPM(SHOOTER_TARGET_RPM);
@@ -113,6 +117,10 @@ public class MecanumTeleOp extends LinearOpMode {
                     shooter.stop();
                 }
 
+                telemetry.addData("Shooter State", isShooterOn ? "ON" : "OFF");
+                telemetry.addData(
+                        "Shooter RPM", "%.0f / %.0f", shooter.getRPM(), isShooterOn ? SHOOTER_TARGET_RPM : 0.0);
+                telemetry.update();
                 telemetry.addData("Drive Mode", driveMode);
                 telemetry.addData("Speed Limit", "%.0f%%", speedLimit * 100.0);
                 telemetry.addData("Right Trigger", "%.0f%%", boostAmount * 100.0);
@@ -156,10 +164,7 @@ public class MecanumTeleOp extends LinearOpMode {
                         drivetrain.getCurrentPosition(backRightMotor));
                 telemetry.addLine("--------------------------------");
                 telemetry.addData("Intake Speed", intake.getSpeed());
-                telemetry.addData("Shooter State", isShooterOn ? "ON" : "OFF");
-                telemetry.addData(
-                        "Shooter RPM", "%.0f / %.0f", shooter.getRPM(), isShooterOn ? SHOOTER_TARGET_RPM : 0.0);
-                telemetry.update();
+
 
                 idle();
             }
