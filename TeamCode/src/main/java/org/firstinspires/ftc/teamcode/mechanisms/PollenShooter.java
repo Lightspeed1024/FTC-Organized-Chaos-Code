@@ -1,15 +1,14 @@
 // package name
 package org.firstinspires.ftc.teamcode.mechanisms;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
-public class BasicShooter {
+public class PollenShooter {
     private DcMotorEx shooter;
     private static final double kP = 35;
-    private static final double kF = 15;
+    private static final double kF = 16; // This is for 2400 rpm. Originally it was 15, so this might be over 2400 rpm.
+    // TODO: Slightly recalibrate kF and target velocity after Thanksgiving
 
     /**
      * Initializes the shooter. NEEDS TO BE CALLED EVERY TIME THIS CLASS IS INSTANTIATED!!!

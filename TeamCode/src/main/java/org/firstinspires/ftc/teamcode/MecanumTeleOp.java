@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.teamcode.mechanisms.BasicIntake;
-import org.firstinspires.ftc.teamcode.mechanisms.BasicShooter;
+import org.firstinspires.ftc.teamcode.mechanisms.PollenShooter;
 import org.firstinspires.ftc.teamcode.mechanisms.MecanumDrivetrain;
 import org.firstinspires.ftc.teamcode.utilities.RobotMath;
 
@@ -31,7 +31,7 @@ public class MecanumTeleOp extends LinearOpMode {
     private final MecanumDrivetrain.Motor backRightMotor = MecanumDrivetrain.Motor.BACK_RIGHT_MOTOR;
     private final MecanumDrivetrain drivetrain = new MecanumDrivetrain();
     private final BasicIntake intake = new BasicIntake();
-    private final BasicShooter shooter = new BasicShooter();
+    private final PollenShooter shooter = new PollenShooter();
 
     @Override
     public void runOpMode() throws InterruptedException {
